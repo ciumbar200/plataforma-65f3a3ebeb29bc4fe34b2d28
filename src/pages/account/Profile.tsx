@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User } from '../../types';
+import { User, UserRole } from '../../types';
 import GlassCard from '../../components/GlassCard';
 import { CITIES_DATA, COUNTRIES } from '../../constants';
-import { CameraIcon } from '../../components/icons';
+import { CameraIcon, ShieldCheckIcon } from '../../components/icons';
 import { supabase } from '../../lib/supabaseClient';
 
 interface ProfileProps {
@@ -20,6 +20,12 @@ const Profile: React.FC<ProfileProps> = ({ user, onSave }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const identityTips = [
+    'Documento de identidad vigente (DNI, NIE o pasaporte).',
+    'Selfie con buena iluminación para la comparación biométrica.',
+    'Comprobante de domicilio (factura o certificado de empadronamiento).'
+  ];
   
   useEffect(() => {
     setFormData(user);
@@ -105,6 +111,36 @@ const Profile: React.FC<ProfileProps> = ({ user, onSave }) => {
   return (
     <GlassCard>
       <h2 className="text-2xl font-bold mb-6">Editar Perfil</h2>
+
+      <div className="mb-8 bg-white/5 border border-white/15 rounded-2xl p-5 sm:p-6 flex flex-col md:flex-row gap-6 items-start">
+        <div className="flex-shrink-0">
+          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-sky-500 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-indigo-900/40">
+            <ShieldCheckIcon className="w-6 h-6" />
+          </div>
+        </div>
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-white">Verifica tu identidad (recomendado)</h3>
+          <p className="text-sm text-white/70 mt-2">
+            {user.role === UserRole.PROPIETARIO
+              ? 'Refuerza la confianza de tus futuros inquilinos y agiliza la publicación de tus espacios.'
+              : 'Suma puntos de compatibilidad y acelera las conversaciones con propietarios verificados.'}
+          </p>
+          <ul className="mt-3 space-y-1 text-sm text-white/70 list-disc list-inside">
+            {identityTips.map((tip, index) => (
+              <li key={index}>{tip}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="w-full md:w-auto">
+          <button
+            type="button"
+            className="w-full md:w-auto bg-gradient-to-r from-sky-500 to-violet-500 hover:from-sky-600 hover:to-violet-600 text-white font-semibold px-5 py-3 rounded-xl shadow-lg transition-colors"
+          >
+            Verificar identidad
+          </button>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="flex justify-center">
             <div className="relative">
