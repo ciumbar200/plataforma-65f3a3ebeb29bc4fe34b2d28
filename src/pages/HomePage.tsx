@@ -247,26 +247,26 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
                             <div className="absolute right-16 top-16 w-72 h-72 rounded-full blur-3xl opacity-60" style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.35), transparent 60%)' }} />
                             <div className="absolute right-28 top-40 w-64 h-64 rounded-full blur-3xl opacity-60" style={{ background: 'radial-gradient(circle, rgba(56,189,248,0.35), transparent 60%)' }} />
 
-                            <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-                                <div className="lg:col-span-2 text-left">
-                                    <div className="inline-flex items-center px-4 py-2 rounded-full border border-white/20 bg-white/10 text-sm text-white/80 mb-6">Cuidamos tu convivencia</div>
+                            <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-10 items-center">
+                                <div className="lg:col-span-2 text-center lg:text-left">
+                                    <div className="inline-flex items-center px-4 py-2 rounded-full border border-white/20 bg-white/10 text-sm text-white/80 mb-6 mx-auto lg:mx-0">Cuidamos tu convivencia</div>
                                     <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
                                         Tu hogar compartido,
                                         <br className="hidden sm:block" />
                                         tu ritmo, tu gente.
                                     </h1>
-                                    <p className="mt-6 text-lg sm:text-xl max-w-2xl text-white/80">
+                                    <p className="mt-6 text-lg sm:text-xl max-w-2xl text-white/80 mx-auto lg:mx-0">
                                         Conecta con personas compatibles y espacios verificados. Acompañamiento humano + procesos claros, sin estrés.
                                     </p>
-                                    <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                        <button onClick={() => setIsSearchModalOpen(true)} className="bg-gradient-to-r from-sky-500 to-violet-500 hover:from-sky-600 hover:to-violet-600 text-white font-bold py-3 px-8 rounded-full transition-all shadow-lg shadow-indigo-900/40">
+                                    <div className="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4">
+                                        <button onClick={() => setIsSearchModalOpen(true)} className="w-full sm:w-auto bg-gradient-to-r from-sky-500 to-violet-500 hover:from-sky-600 hover:to-violet-600 text-white font-bold py-3 px-8 rounded-full transition-all shadow-lg shadow-indigo-900/40">
                                             Empezar ahora
                                         </button>
-                                        <button onClick={() => document.getElementById('como-funciona')?.scrollIntoView({ behavior: 'smooth' })} className="px-6 py-3 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 font-semibold text-white/90">
+                                        <button onClick={() => document.getElementById('como-funciona')?.scrollIntoView({ behavior: 'smooth' })} className="w-full sm:w-auto px-6 py-3 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 font-semibold text-white/90">
                                             Ver cómo funciona
                                         </button>
                                     </div>
-                                    <div className="mt-8 flex flex-wrap gap-6 text-sm text-white/80">
+                                    <div className="mt-8 flex flex-wrap gap-4 sm:gap-6 text-sm text-white/80 justify-center lg:justify-start">
                                         <div className="flex items-center gap-2"><CheckCircleIcon className="w-5 h-5 text-green-400"/>Perfiles Verificados</div>
                                         <div className="flex items-center gap-2"><SparklesIcon className="w-5 h-5 text-yellow-400"/>Matching por Afinidad</div>
                                         <div className="flex items-center gap-2"><ShieldCheckIcon className="w-5 h-5 text-cyan-400"/>Contratos Seguros</div>
@@ -275,7 +275,7 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
 
                                 {/* Compatibility widget */}
                                 <div className="lg:col-span-1">
-                                    <div className="bg-white/5 backdrop-blur-xl border border-white/15 rounded-2xl p-6 sm:p-8 shadow-xl">
+                                    <div className="bg-white/5 backdrop-blur-xl border border-white/15 rounded-2xl p-6 sm:p-8 shadow-xl max-w-sm mx-auto lg:mx-0">
                                         <h3 className="text-lg font-extrabold">Compatibilidad 92%</h3>
                                         <p className="mt-1 text-sm text-white/70">Luna • Clara • Río</p>
                                         <p className="mt-4 text-sm text-white/60">Respeto, orden, horarios similares</p>
