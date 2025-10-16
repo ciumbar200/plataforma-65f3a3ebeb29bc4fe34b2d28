@@ -1,0 +1,5 @@
+{
+	"name": "PRUEBAS DE PROMTS Plataforma de Vivienda Compartida",
+	"description": "Una aplicación web diseñada para conectar inquilinos con posibles compañeros de piso y propiedades basándose en la compatibilidad. Presenta roles distintos para inquilinos, propietarios y administradores, con una interfaz de usuario moderna inspirada en el glassmorphism.",
+	"requestFramePermissions": []
+}
