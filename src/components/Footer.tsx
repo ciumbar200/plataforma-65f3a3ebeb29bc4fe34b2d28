@@ -1,5 +1,6 @@
 import React from 'react';
-import { MoonIcon, TwitterIcon, InstagramIcon, LinkedinIcon } from './icons';
+import { TwitterIcon, InstagramIcon, LinkedinIcon } from './icons';
+import Logo from './Logo';
 
 interface FooterProps {
     onBlogClick?: () => void;
@@ -16,10 +17,7 @@ const Footer: React.FC<FooterProps> = ({ onBlogClick, onAboutClick, onPrivacyCli
         <footer className="bg-black/20 backdrop-blur-lg border-t border-white/10 text-white w-full">
             <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center flex-col sm:flex-row gap-y-6">
-                    <div className="flex items-center gap-2">
-                        <MoonIcon className="w-7 h-7" />
-                        <span className="text-xl font-bold">MoOn</span>
-                    </div>
+                    <Logo />
                     <nav className="flex flex-wrap gap-x-6 gap-y-2 justify-center text-center">
                         {onOwnersClick && <a href="#" onClick={(e) => { e.preventDefault(); onOwnersClick(); }} className="md:hidden text-sm text-white/70 hover:text-white transition-colors">Propietarios</a>}
                         <a

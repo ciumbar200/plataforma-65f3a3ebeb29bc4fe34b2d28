@@ -3,9 +3,10 @@ import Header from '../components/Header';
 import GlowBackground from '../components/GlowBackground';
 import Footer from '../components/Footer';
 import { User, UserRole, RentalGoal, PropertyType } from '../types';
-import { GoogleIcon, FacebookIcon, MoonIcon, UsersIcon, BuildingIcon, MailIcon, CheckCircleIcon, SparklesIcon } from '../components/icons';
+import { GoogleIcon, FacebookIcon, UsersIcon, BuildingIcon, MailIcon, CheckCircleIcon, SparklesIcon } from '../components/icons';
 import GlassCard from '../components/GlassCard';
 import { supabase } from '../lib/supabaseClient';
+import Logo from '../components/Logo';
 
 interface PostRegisterPageProps {
     onGoToLogin: () => void;
@@ -15,7 +16,9 @@ export const PostRegisterPage: React.FC<PostRegisterPageProps> = ({ onGoToLogin 
     return (
         <div className="min-h-screen w-full flex items-center justify-center p-4">
             <GlassCard className="w-full max-w-md text-center animate-fade-in-up">
-                <MoonIcon className="w-12 h-12 mx-auto text-indigo-400" />
+                <div className="flex justify-center">
+                    <Logo showText={false} size={44} />
+                </div>
                 <h2 className="text-3xl font-bold mt-4 text-white">¡Un último paso!</h2>
                 <p className="text-white/80 mt-2">
                     Hemos enviado un enlace de verificación a tu correo electrónico.
@@ -314,7 +317,9 @@ const LoginPage: React.FC<LoginPageProps> = (props) => {
             {/* Form side */}
             <div className="bg-white/5 backdrop-blur-2xl p-6 sm:p-8">
               <div className="text-center mb-6">
-                <MoonIcon className="w-10 h-10 mx-auto text-indigo-400" />
+                <div className="flex justify-center">
+                  <Logo showText={false} size={40} />
+                </div>
                 <h2 className="text-2xl sm:text-3xl font-extrabold mt-3">{mode === 'register' ? 'Crea tu cuenta' : 'Bienvenido de nuevo'}</h2>
                 <p className="text-white/70 mt-1">{getSubtitle()}</p>
               </div>

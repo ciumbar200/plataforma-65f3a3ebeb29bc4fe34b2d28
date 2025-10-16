@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { User } from '../../types';
-import { ChevronLeftIcon, UserCircleIcon, ShieldLockIcon, BellIcon, HeartIcon, MoonIcon } from '../../components/icons';
+import { ChevronLeftIcon, UserCircleIcon, ShieldLockIcon, BellIcon, HeartIcon } from '../../components/icons';
 import Footer from '../../components/Footer';
 import GlassCard from '../../components/GlassCard';
+import Logo from '../../components/Logo';
 
 // Account Sub-pages
 import Overview from './Overview';
@@ -69,10 +70,7 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({ user, onUpdateUser, onLog
                                 <span>Volver al Panel</span>
                             </button>
                         ) : (
-                           <div className="flex items-center gap-2">
-                                <MoonIcon className="w-7 h-7" />
-                                <span className="text-xl font-bold">MoOn</span>
-                            </div>
+                           <Logo />
                         )}
                          <h1 className="text-xl font-bold">Ajustes de Cuenta</h1>
                         <div className="w-40 text-right"> 
