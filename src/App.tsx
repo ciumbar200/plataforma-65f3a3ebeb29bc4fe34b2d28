@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import HomePage from './pages/HomePage';
 import OwnerLandingPage from './pages/OwnerLandingPage';
-import LoginPage, { PostRegisterPage, PostOwnerRegisterPage } from './pages/LoginPage';
+import LoginPage, { PostRegisterPage, PostOwnerRegisterPage, PostProfileCompletePage } from './pages/LoginPage';
 import TenantDashboard from './dashboards/TenantDashboard';
 import OwnerDashboard from './dashboards/OwnerDashboard';
 import AdminDashboard from './dashboards/AdminDashboard';
@@ -17,7 +17,7 @@ import { MOCK_SAVED_SEARCHES, MOCK_BLOG_POSTS, MOCK_NOTIFICATIONS } from './cons
 import { supabase } from './lib/supabaseClient';
 import { MoonIcon } from './components/icons';
 
-type Page = 'home' | 'owners' | 'login' | 'tenant-dashboard' | 'owner-dashboard' | 'admin-dashboard' | 'account' | 'blog' | 'about' | 'privacy' | 'terms' | 'contact' | 'post-register' | 'post-owner-register' | 'silver';
+type Page = 'home' | 'owners' | 'login' | 'tenant-dashboard' | 'owner-dashboard' | 'admin-dashboard' | 'account' | 'blog' | 'about' | 'privacy' | 'terms' | 'contact' | 'post-register' | 'post-owner-register' | 'post-profile-complete' | 'silver';
 
 type RegistrationData = { rentalGoal: RentalGoal; city: string; locality: string };
 type PublicationData = { property_type: PropertyType; city: string; locality: string };
@@ -253,11 +253,10 @@ function App() {
 
     // Optimistic UI update for redirection
     if (shouldMarkProfileComplete) {
-        const newPage = updatedUser.role === UserRole.INQUILINO ? 'tenant-dashboard' : 'owner-dashboard';
         const tempUser = { ...currentUser, ...updatedUser, is_profile_complete: true };
         setCurrentUser(tempUser);
         setUsers(prev => prev.map(u => (u.id === tempUser.id ? tempUser : u)));
-        setPage(newPage);
+        setPage('post-profile-complete');
     }
     
     try {
@@ -539,6 +538,7 @@ function App() {
       case 'login': return <LoginPage onLogin={handleLogin} onRegister={handleRegister} registrationData={registrationData} publicationData={publicationData} initialMode={loginInitialMode} {...loginPageProps} />;
       case 'post-register': return <PostRegisterPage onGoToLogin={handleGoToLogin} />;
       case 'post-owner-register': return <PostOwnerRegisterPage onGoToDashboard={() => setPage('owner-dashboard')} />;
+      case 'post-profile-complete': return <PostProfileCompletePage role={currentUser?.role || UserRole.INQUILINO} onProceed={() => setPage((currentUser?.role === UserRole.PROPIETARIO) ? 'owner-dashboard' : 'tenant-dashboard')} />;
       case 'blog': return <BlogPage posts={blogPosts} {...loginPageProps} />;
       case 'about': return <AboutPage {...loginPageProps} />;
       case 'privacy': return <PrivacyPolicyPage {...loginPageProps} />;

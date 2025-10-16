@@ -3,7 +3,7 @@ import Header from '../components/Header';
 import GlowBackground from '../components/GlowBackground';
 import Footer from '../components/Footer';
 import { User, UserRole, RentalGoal, PropertyType } from '../types';
-import { GoogleIcon, FacebookIcon, MoonIcon, UsersIcon, BuildingIcon, MailIcon, CheckCircleIcon } from '../components/icons';
+import { GoogleIcon, FacebookIcon, MoonIcon, UsersIcon, BuildingIcon, MailIcon, CheckCircleIcon, SparklesIcon } from '../components/icons';
 import GlassCard from '../components/GlassCard';
 import { supabase } from '../lib/supabaseClient';
 
@@ -58,6 +58,30 @@ export const PostOwnerRegisterPage: React.FC<{ onGoToDashboard: () => void }> = 
                     className="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
                 >
                     Ir a mi panel
+                </button>
+            </GlassCard>
+        </div>
+    );
+};
+
+export const PostProfileCompletePage: React.FC<{ onProceed: () => void; role: UserRole }>
+ = ({ onProceed, role }) => {
+    return (
+        <div className="min-h-screen w-full flex items-center justify-center p-4">
+            <GlassCard className="w-full max-w-md text-center animate-fade-in-up">
+                <SparklesIcon className="w-16 h-16 mx-auto text-yellow-300" />
+                <h2 className="text-3xl font-extrabold mt-4 text-white">¡Bienvenid@ a MoOn!</h2>
+                <p className="text-white/80 mt-2">
+                    Tu perfil está completo y listo. {role === UserRole.INQUILINO ? 'Empieza a descubrir personas y espacios compatibles.' : 'Ya puedes gestionar tu vivienda y ver candidatos.'}
+                </p>
+                <div className="my-6">
+                    <img src="/assets/auth-illustration.svg" alt="Bienvenida MoOn" className="w-full h-40 object-cover rounded-lg opacity-90" />
+                </div>
+                <button
+                    onClick={onProceed}
+                    className="mt-2 w-full bg-gradient-to-r from-sky-500 to-violet-500 hover:from-sky-600 hover:to-violet-600 text-white font-bold py-3 px-4 rounded-xl transition-colors shadow-lg"
+                >
+                    {role === UserRole.INQUILINO ? 'Ir a Descubrir' : 'Ir a mi Panel'}
                 </button>
             </GlassCard>
         </div>
