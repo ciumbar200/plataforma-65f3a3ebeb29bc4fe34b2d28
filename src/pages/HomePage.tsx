@@ -278,19 +278,25 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
                                     <div className="bg-white/5 backdrop-blur-xl border border-white/15 rounded-2xl p-6 sm:p-8 shadow-xl max-w-sm mx-auto lg:mx-0">
                                         <h3 className="text-lg font-extrabold">Compatibilidad 92%</h3>
                                         <p className="mt-1 text-sm text-white/70">Luna • Clara • Río</p>
+                                        <div className="mt-6 bg-white/8 border border-white/15 rounded-xl p-4 flex items-center gap-4">
+                                            <img
+                                                src="https://images.unsplash.com/photo-1463453091185-61582044d556?q=80&w=200&auto=format&fit=crop"
+                                                alt="Perfil joven"
+                                                className="w-14 h-14 rounded-2xl object-cover"
+                                            />
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="font-semibold text-white">María, 27</p>
+                                                    <span className="text-xs px-2 py-0.5 rounded-full bg-sky-500/40 text-white/80">92% match</span>
+                                                </div>
+                                                <p className="text-xs text-white/70">Creativa • Ordenada • Madrugadora</p>
+                                            </div>
+                                        </div>
                                         <p className="mt-4 text-sm text-white/60">Respeto, orden, horarios similares</p>
-                                        <div className="mt-6 h-28 rounded-xl bg-gradient-to-br from-sky-500/30 to-violet-500/30 blur-[2px]"/>
                                     </div>
                                 </div>
                             </div>
-                            <div className="md:hidden relative mt-8">
-                                <img
-                                    src="https://images.unsplash.com/photo-1525134479668-1bee5c7c6845?q=80&w=1600&auto=format&fit=crop"
-                                    alt="Compañeros felices"
-                                    className="w-full h-48 object-cover rounded-b-3xl"
-                                />
-                                <div className="absolute inset-0 rounded-b-3xl bg-gradient-to-t from-[#0b1220]/80 to-transparent" />
-                            </div>
+                            <div className="md:hidden relative mt-8" />
                         </div>
                     </div>
                 </section>
