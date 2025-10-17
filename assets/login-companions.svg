@@ -1,0 +1,42 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1220" />
+      <stop offset="50%" stop-color="#1a1f3e" />
+      <stop offset="100%" stop-color="#312454" />
+    </linearGradient>
+    <radialGradient id="glowA" cx="30%" cy="25%" r="45%">
+      <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.65" />
+      <stop offset="100%" stop-color="#60a5fa" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="glowB" cx="70%" cy="70%" r="50%">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bgGradient)" />
+  <circle cx="120" cy="140" r="220" fill="url(#glowA)" />
+  <circle cx="680" cy="480" r="260" fill="url(#glowB)" />
+
+  <!-- People silhouettes -->
+  <g transform="translate(230,180)" fill="none" stroke="#e2e8f099" stroke-width="4" stroke-linecap="round">
+    <circle cx="80" cy="85" r="44" fill="#ffffff14" stroke="none" />
+    <circle cx="230" cy="65" r="52" fill="#ffffff12" stroke="none" />
+    <circle cx="380" cy="90" r="46" fill="#ffffff10" stroke="none" />
+
+    <path d="M40 230c4-64 40-94 80-94s76 30 80 94" stroke="#e2e8f099" stroke-width="6" fill="none" />
+    <path d="M188 210c6-76 48-110 94-110s88 34 94 110" stroke="#f1f5f9b0" stroke-width="6" fill="none" />
+    <path d="M342 230c3-58 36-84 74-84s66 26 70 84" stroke="#cbd5f566" stroke-width="6" fill="none" />
+
+    <path d="M0 260h480" stroke="#667eeaa0" stroke-width="3" stroke-linecap="round" />
+  </g>
+
+  <!-- Decorative sparkles -->
+  <g fill="#ffffff55">
+    <circle cx="140" cy="360" r="4" />
+    <circle cx="240" cy="110" r="3" />
+    <circle cx="520" cy="160" r="3" />
+    <circle cx="640" cy="320" r="4" />
+    <circle cx="480" cy="520" r="2" />
+  </g>
+</svg>

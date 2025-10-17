@@ -7,6 +7,8 @@ import { GoogleIcon, FacebookIcon, UsersIcon, BuildingIcon, MailIcon, CheckCircl
 import GlassCard from '../components/GlassCard';
 import { supabase } from '../lib/supabaseClient';
 import Logo from '../components/Logo';
+import loginCompanions from '../assets/login-companions.svg';
+import registerHarmony from '../assets/register-harmony.svg';
 
 interface PostRegisterPageProps {
     onGoToLogin: () => void;
@@ -307,9 +309,16 @@ const LoginPage: React.FC<LoginPageProps> = (props) => {
         <div className="relative w-full max-w-5xl">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0 overflow-hidden rounded-3xl border border-white/15 shadow-2xl">
             {/* Illustration side */}
-            <div className="hidden md:flex relative bg-[#0f1530] p-8 items-end" style={{ backgroundImage: "url('/assets/auth-illustration.svg')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0b1220]/60" />
-              <div className="relative z-10 text-left">
+            <div
+              className="hidden md:flex relative p-8 items-end"
+              style={{
+                backgroundImage: `url(${mode === 'register' ? registerHarmony : loginCompanions})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0b1220]/65" />
+              <div className="relative z-10 text-left max-w-sm">
                 <h3 className="text-2xl font-extrabold leading-tight">Convive con gente compatible</h3>
                 <p className="text-white/75 mt-2">Perfiles verificados, procesos claros y soporte humano.</p>
               </div>
