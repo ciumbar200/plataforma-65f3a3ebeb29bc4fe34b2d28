@@ -247,7 +247,7 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
                     </div>
                     <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-                                <div className="text-center lg:text-left space-y-6">
+                            <div className="text-center lg:text-left space-y-6">
                                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/15 bg-white/10 backdrop-blur-xl text-sm text-white/80 mx-auto lg:mx-0">
                                         Cuidamos tu convivencia
                                     </div>
@@ -272,8 +272,8 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
                                     </div>
                                 </div>
 
-                                {/* Compatibility widget */}
-                                <div className="w-full">
+                            {/* Compatibility widget */}
+                            <div className="w-full">
                                     <div className="bg-white/5 backdrop-blur-xl border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl max-w-sm mx-auto lg:mx-0">
                                         <h3 className="text-lg font-extrabold text-orange-300">Compatibilidad 92%</h3>
                                         <p className="mt-1 text-sm text-white/70">Luna • Clara • Río</p>
@@ -309,7 +309,6 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
                                         </div>
                                     </div>
                                     <p className="mt-6 text-center lg:text-left text-xs text-white/60">Sneak peek del Discover de MoOn.</p>
-                                </div>
                             </div>
                         </div>
                     </div>

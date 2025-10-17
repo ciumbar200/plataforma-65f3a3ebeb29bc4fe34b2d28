@@ -114,7 +114,7 @@ const OwnerLandingPage: React.FC<OwnerLandingPageProps> = ({ onStartPublication,
                     </div>
                     <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
-                                <div className="text-center lg:text-left space-y-6">
+                            <div className="text-center lg:text-left space-y-6">
                                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/15 bg-white/10 backdrop-blur-xl text-sm text-white/80 mx-auto lg:mx-0">Publicar es gratis y sin exclusividad</div>
                                     <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight">
                                         Consigue inquilinos fiables sin estrés
@@ -136,7 +136,7 @@ const OwnerLandingPage: React.FC<OwnerLandingPageProps> = ({ onStartPublication,
                                         <div className="flex items-center gap-2"><DocumentTextIcon className="w-5 h-5 text-sky-300" />Contratos claros</div>
                                     </div>
                                 </div>
-                                <div className="w-full">
+                            <div className="w-full">
                                     <GlassCard className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
                                         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 text-left">
                                             <div>
@@ -163,7 +163,6 @@ const OwnerLandingPage: React.FC<OwnerLandingPageProps> = ({ onStartPublication,
                                             <button type="submit" className="w-full bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 hover:scale-[1.02] text-slate-900 font-semibold py-3 px-6 rounded-full transition-all shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50">Empezar a publicar</button>
                                         </form>
                                     </GlassCard>
-                                </div>
                             </div>
                         </div>
                     </div>
