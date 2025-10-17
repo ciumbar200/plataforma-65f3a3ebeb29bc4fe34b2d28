@@ -239,43 +239,42 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
             
             <main className="flex-grow">
                 {/* Hero Section */}
-                <section className="relative pt-36 pb-16 sm:pt-32 sm:pb-24 overflow-hidden">
+                <section className="relative overflow-hidden">
                     <GlowBackground />
-                    <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="relative bg-white/5 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-2xl px-0 pb-0 pt-6 sm:p-10 lg:p-14 overflow-hidden">
-                            {/* inner decorative glows */}
-                            <div className="absolute right-16 top-16 w-72 h-72 rounded-full blur-3xl opacity-60" style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.35), transparent 60%)' }} />
-                            <div className="absolute right-28 top-40 w-64 h-64 rounded-full blur-3xl opacity-60" style={{ background: 'radial-gradient(circle, rgba(56,189,248,0.35), transparent 60%)' }} />
-
-                            <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-10 items-center">
-                                <div className="lg:col-span-2 text-center lg:text-left">
-                                    <div className="inline-flex items-center px-4 py-2 rounded-full border border-white/20 bg-white/10 text-sm text-white/80 mb-6 mx-auto lg:mx-0">Cuidamos tu convivencia</div>
-                                    <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
-                                        Tu hogar compartido,
-                                        <br className="hidden sm:block" />
-                                        tu ritmo, tu gente.
+                    <div className="absolute inset-0 pointer-events-none">
+                        <div className="absolute -top-24 -left-24 h-56 w-56 rounded-full bg-purple-500/25 blur-3xl" />
+                        <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-sky-400/25 blur-3xl" />
+                    </div>
+                    <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+                                <div className="text-center lg:text-left space-y-6">
+                                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/15 bg-white/10 backdrop-blur-xl text-sm text-white/80 mx-auto lg:mx-0">
+                                        Cuidamos tu convivencia
+                                    </div>
+                                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight">
+                                        Comparte hogar con personas que vibran contigo.
                                     </h1>
-                                    <p className="mt-6 text-lg sm:text-xl max-w-2xl text-white/80 mx-auto lg:mx-0">
-                                        Conecta con personas compatibles y espacios verificados. Acompañamiento humano + procesos claros, sin estrés.
+                                    <p className="text-lg sm:text-xl text-white/80 max-w-xl mx-auto lg:mx-0">
+                                        Matching empático, espacios verificados y acompañamiento humano para que cada mudanza sea una buena historia.
                                     </p>
-                                    <div className="mt-6 grid grid-cols-2 sm:flex sm:flex-row items-center justify-center lg:justify-start gap-2 sm:gap-4">
-                                        <button onClick={() => setIsSearchModalOpen(true)} className="col-span-2 sm:col-span-1 w-full sm:w-auto bg-gradient-to-r from-sky-500 to-violet-500 hover:from-sky-600 hover:to-violet-600 text-white font-bold py-3 px-8 rounded-full transition-all shadow-lg shadow-indigo-900/40">
+                                    <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
+                                        <button onClick={() => setIsSearchModalOpen(true)} className="w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 px-8 py-3 font-semibold text-slate-900 shadow-lg shadow-indigo-500/30 transition hover:scale-[1.02] hover:shadow-indigo-500/50">
                                             Empezar ahora
                                         </button>
-                                        <button onClick={() => document.getElementById('como-funciona')?.scrollIntoView({ behavior: 'smooth' })} className="col-span-2 sm:col-span-1 w-full sm:w-auto px-6 py-3 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 font-semibold text-white/90">
+                                        <button onClick={() => document.getElementById('como-funciona')?.scrollIntoView({ behavior: 'smooth' })} className="w-full sm:w-auto inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-8 py-3 font-semibold text-white/85 hover:bg-white/10">
                                             Ver cómo funciona
                                         </button>
                                     </div>
-                                    <div className="mt-8 flex flex-wrap gap-4 sm:gap-6 text-sm text-white/80 justify-center lg:justify-start">
-                                        <div className="flex items-center gap-2"><CheckCircleIcon className="w-5 h-5 text-green-400"/>Perfiles Verificados</div>
-                                        <div className="flex items-center gap-2"><SparklesIcon className="w-5 h-5 text-yellow-400"/>Matching por Afinidad</div>
-                                        <div className="flex items-center gap-2"><ShieldCheckIcon className="w-5 h-5 text-cyan-400"/>Contratos Seguros</div>
+                                    <div className="pt-2 flex flex-wrap gap-4 sm:gap-6 text-sm text-white/75 justify-center lg:justify-start">
+                                        <div className="flex items-center gap-2"><CheckCircleIcon className="w-5 h-5 text-emerald-300"/>Perfiles verificados</div>
+                                        <div className="flex items-center gap-2"><SparklesIcon className="w-5 h-5 text-yellow-300"/>Matching por afinidad</div>
+                                        <div className="flex items-center gap-2"><ShieldCheckIcon className="w-5 h-5 text-sky-300"/>Contratos seguros</div>
                                     </div>
                                 </div>
 
                                 {/* Compatibility widget */}
-                                <div className="lg:col-span-1">
-                                    <div className="bg-white/5 backdrop-blur-xl border border-white/15 rounded-2xl p-6 sm:p-8 shadow-xl max-w-sm mx-auto lg:mx-0">
+                                <div className="w-full">
+                                    <div className="bg-white/5 backdrop-blur-xl border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl max-w-sm mx-auto lg:mx-0">
                                         <h3 className="text-lg font-extrabold text-orange-300">Compatibilidad 92%</h3>
                                         <p className="mt-1 text-sm text-white/70">Luna • Clara • Río</p>
                                         <div className="mt-6 bg-white/8 border border-white/15 rounded-2xl p-4 sm:p-5">
@@ -309,9 +308,9 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
                                             </div>
                                         </div>
                                     </div>
+                                    <p className="mt-6 text-center lg:text-left text-xs text-white/60">Sneak peek del Discover de MoOn.</p>
                                 </div>
                             </div>
-                            <div className="md:hidden relative mt-8" />
                         </div>
                     </div>
                 </section>

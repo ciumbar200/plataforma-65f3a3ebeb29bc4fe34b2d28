@@ -106,25 +106,37 @@ const OwnerLandingPage: React.FC<OwnerLandingPageProps> = ({ onStartPublication,
             <Header reserveSpace={false} onLoginClick={onLoginClick} onHomeClick={onHomeClick} onOwnersClick={onHomeClick} pageContext="propietario" />
             <main className="flex-grow">
                 {/* Hero Section */}
-                <section className="relative pt-28 pb-16 sm:pt-32 sm:pb-24 overflow-hidden">
+                <section className="relative overflow-hidden">
                     <GlowBackground />
-                    <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="relative bg-white/5 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-2xl p-6 sm:p-10 lg:p-14 overflow-hidden">
-                            <div className="absolute right-16 top-16 w-72 h-72 rounded-full blur-3xl opacity-60" style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.35), transparent 60%)' }} />
-                            <div className="absolute right-28 top-40 w-64 h-64 rounded-full blur-3xl opacity-60" style={{ background: 'radial-gradient(circle, rgba(56,189,248,0.35), transparent 60%)' }} />
-                            <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-                                <div className="lg:col-span-2 text-left">
-                                    <div className="inline-flex items-center px-4 py-2 rounded-full border border-white/20 bg-white/10 text-sm text-white/80 mb-6">Publicar es gratis y sin exclusividad</div>
-                                    <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
-                                        Consigue inquilinos fiables,
-                                        <br className="hidden sm:block" />
-                                        sin estrés
+                    <div className="absolute inset-0 pointer-events-none">
+                        <div className="absolute -top-24 -left-24 h-56 w-56 rounded-full bg-purple-500/25 blur-3xl" />
+                        <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-sky-400/25 blur-3xl" />
+                    </div>
+                    <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+                                <div className="text-center lg:text-left space-y-6">
+                                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/15 bg-white/10 backdrop-blur-xl text-sm text-white/80 mx-auto lg:mx-0">Publicar es gratis y sin exclusividad</div>
+                                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight">
+                                        Consigue inquilinos fiables sin estrés
                                     </h1>
-                                    <p className="mt-6 text-lg sm:text-xl max-w-2xl text-white/80">
-                                        Verificamos identidad y solvencia, filtramos candidatos y destacamos la compatibilidad para convivencias felices.
+                                    <p className="text-lg sm:text-xl text-white/80 max-w-xl mx-auto lg:mx-0">
+                                        Verificamos identidad, filtramos candidatos y te acompañamos con procesos claros para convivencias felices.
                                     </p>
+                                    <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
+                                        <button onClick={() => setPropertyType(PropertyType.ROOM)} className="w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 px-8 py-3 font-semibold text-slate-900 shadow-lg shadow-indigo-500/30 transition hover:scale-[1.02] hover:shadow-indigo-500/50">
+                                            Empieza gratis
+                                        </button>
+                                        <button onClick={() => document.getElementById('como-funciona')?.scrollIntoView({ behavior: 'smooth' })} className="w-full sm:w-auto inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-8 py-3 font-semibold text-white/85 hover:bg-white/10">
+                                            Ver cómo funciona
+                                        </button>
+                                    </div>
+                                    <div className="pt-2 flex flex-wrap justify-center lg:justify-start gap-4 text-sm text-white/75">
+                                        <div className="flex items-center gap-2"><ShieldCheckIcon className="w-5 h-5 text-emerald-300" />Verificación antifraude</div>
+                                        <div className="flex items-center gap-2"><SparklesIcon className="w-5 h-5 text-yellow-300" />Matches compatibles</div>
+                                        <div className="flex items-center gap-2"><DocumentTextIcon className="w-5 h-5 text-sky-300" />Contratos claros</div>
+                                    </div>
                                 </div>
-                                <div className="lg:col-span-1">
+                                <div className="w-full">
                                     <GlassCard className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
                                         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 text-left">
                                             <div>
@@ -148,7 +160,7 @@ const OwnerLandingPage: React.FC<OwnerLandingPageProps> = ({ onStartPublication,
                                                     {localities.map(loc => <option key={loc} value={loc} className="bg-gray-800 text-white">{loc}</option>)}
                                                 </select>
                                             </div>
-                                            <button type="submit" className="w-full bg-gradient-to-r from-sky-500 to-violet-500 hover:from-sky-600 hover:to-violet-600 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg hover:shadow-purple-500/50">Empezar a Publicar</button>
+                                            <button type="submit" className="w-full bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 hover:scale-[1.02] text-slate-900 font-semibold py-3 px-6 rounded-full transition-all shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50">Empezar a publicar</button>
                                         </form>
                                     </GlassCard>
                                 </div>

@@ -54,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick, onRegisterClick, onHomeCl
     }
     
     const headerClasses = `
-        z-50 text-white w-full transition-all duration-300 ${isScrolled ? 'sticky top-0' : 'absolute top-4'}
+        z-50 text-white w-full transition-all duration-300 ${isScrolled ? 'sticky top-0' : 'absolute top-3'}
     `;
 
     const headerEl = (
@@ -62,9 +62,10 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick, onRegisterClick, onHomeCl
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className={`
                     h-[60px] sm:h-14 flex items-center justify-between gap-4
-                    rounded-[22px] border border-white/15 shadow-lg
-                    ${isScrolled ? 'bg-slate-900/70 backdrop-blur-xl mt-0' : 'bg-white/10 backdrop-blur-2xl mt-3 sm:mt-2'}
-                    px-4 sm:px-5
+                    rounded-[24px] border transition-all duration-300 px-4 sm:px-6
+                    ${isScrolled
+                        ? 'bg-slate-900/70 backdrop-blur-xl border-white/15 shadow-lg'
+                        : 'bg-transparent border-transparent shadow-none'}
                 `}>
                     <div className="flex-1 flex justify-start">
                         <button className="cursor-pointer" onClick={onHomeClick}>
