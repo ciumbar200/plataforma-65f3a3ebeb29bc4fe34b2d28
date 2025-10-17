@@ -276,21 +276,21 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
                                 {/* Compatibility widget */}
                                 <div className="lg:col-span-1">
                                     <div className="bg-white/5 backdrop-blur-xl border border-white/15 rounded-2xl p-6 sm:p-8 shadow-xl max-w-sm mx-auto lg:mx-0">
-                                        <h3 className="text-lg font-extrabold">Compatibilidad 92%</h3>
+                                        <h3 className="text-lg font-extrabold text-orange-300">Compatibilidad 92%</h3>
                                         <p className="mt-1 text-sm text-white/70">Luna • Clara • Río</p>
                                         <div className="mt-6 bg-white/8 border border-white/15 rounded-2xl p-4 sm:p-5">
                                             <div className="flex items-center gap-4">
                                                 <img
-                                                    src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=200&auto=format&fit=crop"
+                                                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop"
                                                     alt="Perfil joven"
-                                                    className="w-16 h-16 rounded-2xl object-cover"
+                                                    className="w-16 h-16 rounded-full object-cover"
                                                 />
                                                 <div>
                                                     <div className="flex items-center gap-2">
                                                         <p className="font-semibold text-white">Laura, 28</p>
                                                         <span className="text-xs px-2 py-0.5 rounded-full bg-sky-500/40 text-white/80">92% match</span>
                                                     </div>
-                                                    <p className="text-xs text-white/70">Diseñadora UX • Madrid</p>
+                                                    <p className="text-xs text-white/70">Busco compañer@ para alquilar piso juntos</p>
                                                 </div>
                                             </div>
                                             <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-white/70">
