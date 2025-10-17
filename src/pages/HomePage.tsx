@@ -278,21 +278,36 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
                                     <div className="bg-white/5 backdrop-blur-xl border border-white/15 rounded-2xl p-6 sm:p-8 shadow-xl max-w-sm mx-auto lg:mx-0">
                                         <h3 className="text-lg font-extrabold">Compatibilidad 92%</h3>
                                         <p className="mt-1 text-sm text-white/70">Luna • Clara • Río</p>
-                                        <div className="mt-6 bg-white/8 border border-white/15 rounded-xl p-4 flex items-center gap-4">
-                                            <img
-                                                src="https://images.unsplash.com/photo-1463453091185-61582044d556?q=80&w=200&auto=format&fit=crop"
-                                                alt="Perfil joven"
-                                                className="w-14 h-14 rounded-2xl object-cover"
-                                            />
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <p className="font-semibold text-white">María, 27</p>
-                                                    <span className="text-xs px-2 py-0.5 rounded-full bg-sky-500/40 text-white/80">92% match</span>
+                                        <div className="mt-6 bg-white/8 border border-white/15 rounded-2xl p-4 sm:p-5">
+                                            <div className="flex items-center gap-4">
+                                                <img
+                                                    src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=200&auto=format&fit=crop"
+                                                    alt="Perfil joven"
+                                                    className="w-16 h-16 rounded-2xl object-cover"
+                                                />
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="font-semibold text-white">Laura, 28</p>
+                                                        <span className="text-xs px-2 py-0.5 rounded-full bg-sky-500/40 text-white/80">92% match</span>
+                                                    </div>
+                                                    <p className="text-xs text-white/70">Diseñadora UX • Madrid</p>
                                                 </div>
-                                                <p className="text-xs text-white/70">Creativa • Ordenada • Madrugadora</p>
+                                            </div>
+                                            <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-white/70">
+                                                <span className="bg-white/10 border border-white/15 rounded-lg px-3 py-2">Rutina madrugadora</span>
+                                                <span className="bg-white/10 border border-white/15 rounded-lg px-3 py-2">Cocina mediterránea</span>
+                                                <span className="bg-white/10 border border-white/15 rounded-lg px-3 py-2">Yoga y pilates</span>
+                                                <span className="bg-white/10 border border-white/15 rounded-lg px-3 py-2">Trabaja remoto</span>
+                                            </div>
+                                            <div className="mt-4 flex items-center justify-between text-sm text-white/60">
+                                                <p>Respeto, orden, horarios similares</p>
+                                                <span className="text-xs text-white/50">+3 coincidencias</span>
+                                            </div>
+                                            <div className="mt-4 flex gap-3">
+                                                <button className="flex-1 bg-red-500/20 hover:bg-red-500/30 border border-red-400/40 text-red-200 font-semibold py-2 rounded-full transition-colors">No</button>
+                                                <button className="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 font-semibold py-2 rounded-full transition-colors">Sí</button>
                                             </div>
                                         </div>
-                                        <p className="mt-4 text-sm text-white/60">Respeto, orden, horarios similares</p>
                                     </div>
                                 </div>
                             </div>
