@@ -287,6 +287,63 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
                     </div>
                 </section>
 
+                {/* Cohorts Section */}
+                <section className="relative py-16 sm:py-20 overflow-hidden">
+                    <GlowBackground />
+                    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <GlassCard className="bg-white/5 border-white/15 backdrop-blur-2xl p-6 sm:p-10 shadow-2xl">
+                            <div className="text-center mb-10">
+                                <h2 className="text-3xl sm:text-4xl font-extrabold text-white">Unimos generaciones y oportunidades</h2>
+                                <p className="mt-3 text-white/70 max-w-2xl mx-auto">Creamos puentes entre quienes buscan un hogar, quienes abren sus puertas y quienes quieren seguir viviendo acompañados.</p>
+                            </div>
+                            <div className="grid gap-6 md:grid-cols-3">
+                                {[
+                                    {
+                                        label: 'Mooner',
+                                        description: 'Estudiantes y jóvenes profesionales que desean convivencias auténticas y seguras.',
+                                        cta: 'Encuentra tu lugar',
+                                        emoji: '👨\u200d🎓',
+                                        image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=800&auto=format&fit=crop'
+                                    },
+                                    {
+                                        label: 'Propietario',
+                                        description: 'Propietarios y anfitriones que buscan personas compatibles y procesos sin fricción.',
+                                        cta: 'Publica tu habitación',
+                                        emoji: '🏡',
+                                        image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=800&auto=format&fit=crop'
+                                    },
+                                    {
+                                        label: 'Silver',
+                                        description: 'Personas senior que quieren compartir su hogar y mantener una vida activa en compañía.',
+                                        cta: 'Vive acompañado',
+                                        emoji: '👵',
+                                        image: 'https://images.unsplash.com/photo-1517248142162-cc02ed3c449c?q=80&w=800&auto=format&fit=crop'
+                                    }
+                                ].map(({ label, description, cta, emoji, image }) => (
+                                    <div key={label} className="relative overflow-hidden rounded-2xl border border-white/15 bg-white/5 backdrop-blur-2xl">
+                                        <div className="absolute inset-0">
+                                            <img src={image} alt={label} className="w-full h-full object-cover opacity-40" />
+                                            <div className="absolute inset-0 bg-gradient-to-br from-[#0b1220]/70 to-[#221a3e]/80" />
+                                        </div>
+                                        <div className="relative p-6 flex flex-col h-full">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-12 w-12 rounded-xl bg-white/15 flex items-center justify-center text-2xl">
+                                                    <span>{emoji}</span>
+                                                </div>
+                                                <h3 className="text-xl font-bold text-white">{label}</h3>
+                                            </div>
+                                            <p className="mt-4 text-sm text-white/75 flex-1">{description}</p>
+                                            <button className="mt-6 w-full bg-white/10 hover:bg-white/20 border border-white/25 text-white font-semibold py-2.5 rounded-full transition-colors text-sm">
+                                                {cta}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </GlassCard>
+                    </div>
+                </section>
+
                 {/* Features Section */}
                 <section id="como-funciona" className="relative py-20 bg-black/10 overflow-hidden">
                     <GlowBackground />
