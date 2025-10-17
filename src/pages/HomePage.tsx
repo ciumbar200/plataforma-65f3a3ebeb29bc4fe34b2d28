@@ -280,11 +280,11 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
                                         <p className="mt-1 text-sm text-white/70">Luna • Clara • Río</p>
                                         <div className="mt-6 bg-white/8 border border-white/15 rounded-2xl p-4 sm:p-5">
                                             <div className="flex items-center gap-4">
-                                                <img
-                                                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop"
-                                                    alt="Perfil joven"
-                                                    className="w-16 h-16 rounded-full object-cover"
-                                                />
+                                            <img
+                                                src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=200&auto=format&fit=crop"
+                                                alt="Perfil joven"
+                                                className="w-16 h-16 rounded-full object-cover"
+                                            />
                                                 <div>
                                                     <div className="flex items-center gap-2">
                                                         <p className="font-semibold text-white">Laura, 28</p>

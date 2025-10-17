@@ -15,7 +15,7 @@ import Silver from './pages/Silver';
 import { User, UserRole, RentalGoal, Property, PropertyType, SavedSearch, BlogPost, Notification } from './types';
 import { MOCK_SAVED_SEARCHES, MOCK_BLOG_POSTS, MOCK_NOTIFICATIONS } from './constants';
 import { supabase } from './lib/supabaseClient';
-import { MoonIcon } from './components/icons';
+import Logo from './components/Logo';
 
 type Page = 'home' | 'owners' | 'login' | 'tenant-dashboard' | 'owner-dashboard' | 'admin-dashboard' | 'account' | 'blog' | 'about' | 'privacy' | 'terms' | 'contact' | 'post-register' | 'post-owner-register' | 'post-profile-complete' | 'silver';
 
@@ -493,9 +493,11 @@ function App() {
   
   if (loading) {
     return (
-        <div className="h-screen w-screen bg-gray-900 flex flex-col items-center justify-center text-white">
-            <MoonIcon className="w-16 h-16 animate-pulse text-indigo-400" />
-            <p className="mt-4 text-lg">Cargando MoOn...</p>
+        <div className="h-screen w-screen bg-gradient-to-br from-[#0b1220] via-[#151c3a] to-[#221a3e] flex flex-col items-center justify-center text-white">
+            <div className="animate-pulse">
+                <Logo showText={false} size={56} />
+            </div>
+            <p className="mt-4 text-lg text-white/80">Cargando MoOn...</p>
         </div>
     );
   }
