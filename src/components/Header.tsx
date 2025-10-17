@@ -61,10 +61,10 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick, onRegisterClick, onHomeCl
         <header className={headerClasses.trim()}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className={`
-                    h-14 flex items-center justify-between gap-4
-                    rounded-full border border-white/15 shadow-lg
-                    ${isScrolled ? 'bg-slate-900/70 backdrop-blur-xl mt-0' : 'bg-white/10 backdrop-blur-2xl mt-2'}
-                    px-3 sm:px-5
+                    h-[60px] sm:h-14 flex items-center justify-between gap-4
+                    rounded-[22px] border border-white/15 shadow-lg
+                    ${isScrolled ? 'bg-slate-900/70 backdrop-blur-xl mt-0' : 'bg-white/10 backdrop-blur-2xl mt-3 sm:mt-2'}
+                    px-4 sm:px-5
                 `}>
                     <div className="flex-1 flex justify-start">
                         <button className="cursor-pointer" onClick={onHomeClick}>

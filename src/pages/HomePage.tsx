@@ -239,10 +239,10 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
             
             <main className="flex-grow">
                 {/* Hero Section */}
-                <section className="relative pt-28 pb-16 sm:pt-32 sm:pb-24 overflow-hidden">
+                <section className="relative pt-36 pb-16 sm:pt-32 sm:pb-24 overflow-hidden">
                     <GlowBackground />
                     <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="relative bg-white/5 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-2xl p-6 sm:p-10 lg:p-14 overflow-hidden">
+                        <div className="relative bg-white/5 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-2xl px-0 pb-0 pt-6 sm:p-10 lg:p-14 overflow-hidden">
                             {/* inner decorative glows */}
                             <div className="absolute right-16 top-16 w-72 h-72 rounded-full blur-3xl opacity-60" style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.35), transparent 60%)' }} />
                             <div className="absolute right-28 top-40 w-64 h-64 rounded-full blur-3xl opacity-60" style={{ background: 'radial-gradient(circle, rgba(56,189,248,0.35), transparent 60%)' }} />
@@ -258,11 +258,11 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
                                     <p className="mt-6 text-lg sm:text-xl max-w-2xl text-white/80 mx-auto lg:mx-0">
                                         Conecta con personas compatibles y espacios verificados. Acompañamiento humano + procesos claros, sin estrés.
                                     </p>
-                                    <div className="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4">
-                                        <button onClick={() => setIsSearchModalOpen(true)} className="w-full sm:w-auto bg-gradient-to-r from-sky-500 to-violet-500 hover:from-sky-600 hover:to-violet-600 text-white font-bold py-3 px-8 rounded-full transition-all shadow-lg shadow-indigo-900/40">
+                                    <div className="mt-6 grid grid-cols-2 sm:flex sm:flex-row items-center justify-center lg:justify-start gap-2 sm:gap-4">
+                                        <button onClick={() => setIsSearchModalOpen(true)} className="col-span-2 sm:col-span-1 w-full sm:w-auto bg-gradient-to-r from-sky-500 to-violet-500 hover:from-sky-600 hover:to-violet-600 text-white font-bold py-3 px-8 rounded-full transition-all shadow-lg shadow-indigo-900/40">
                                             Empezar ahora
                                         </button>
-                                        <button onClick={() => document.getElementById('como-funciona')?.scrollIntoView({ behavior: 'smooth' })} className="w-full sm:w-auto px-6 py-3 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 font-semibold text-white/90">
+                                        <button onClick={() => document.getElementById('como-funciona')?.scrollIntoView({ behavior: 'smooth' })} className="col-span-2 sm:col-span-1 w-full sm:w-auto px-6 py-3 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 font-semibold text-white/90">
                                             Ver cómo funciona
                                         </button>
                                     </div>
@@ -282,6 +282,14 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
                                         <div className="mt-6 h-28 rounded-xl bg-gradient-to-br from-sky-500/30 to-violet-500/30 blur-[2px]"/>
                                     </div>
                                 </div>
+                            </div>
+                            <div className="md:hidden relative mt-8">
+                                <img
+                                    src="https://images.unsplash.com/photo-1525134479668-1bee5c7c6845?q=80&w=1600&auto=format&fit=crop"
+                                    alt="Compañeros felices"
+                                    className="w-full h-48 object-cover rounded-b-3xl"
+                                />
+                                <div className="absolute inset-0 rounded-b-3xl bg-gradient-to-t from-[#0b1220]/80 to-transparent" />
                             </div>
                         </div>
                     </div>
