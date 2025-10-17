@@ -273,7 +273,7 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
                                 </div>
 
                             {/* Compatibility widget */}
-                            <div className="w-full">
+                            <div className="w-full flex flex-col items-center lg:items-end gap-6">
                                     <div className="bg-white/5 backdrop-blur-xl border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl max-w-sm mx-auto lg:mx-0">
                                         <h3 className="text-lg font-extrabold text-orange-300">Compatibilidad 92%</h3>
                                         <p className="mt-1 text-sm text-white/70">Luna • Clara • Río</p>
@@ -309,6 +309,44 @@ const HomePage: React.FC<HomePageProps> = ({ onLoginClick, onRegisterClick, onSt
                                         </div>
                                     </div>
                                     <p className="mt-6 text-center lg:text-left text-xs text-white/60">Sneak peek del Discover de MoOn.</p>
+                                    <div className="w-full max-w-xs bg-white/6 border border-white/15 rounded-3xl p-5 backdrop-blur-xl shadow-lg lg:hidden">
+                                        <div className="flex items-center justify-between">
+                                            <span className="uppercase text-xs tracking-wide text-white/70">Detalle de compatibilidad</span>
+                                            <span className="text-emerald-300 font-semibold text-lg">66%</span>
+                                        </div>
+                                        <div className="mt-4 flex items-center gap-3">
+                                            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=200&auto=format&fit=crop" alt="Marc" className="w-12 h-12 rounded-full object-cover" />
+                                            <div className="flex-1 text-xs text-white/70">
+                                                <p className="font-semibold text-white">Marc, 29</p>
+                                                <p>Diseñador UX • Barcelona</p>
+                                            </div>
+                                            <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=200&auto=format&fit=crop" alt="Laura" className="w-12 h-12 rounded-full object-cover" />
+                                        </div>
+                                        <div className="mt-4 space-y-3 text-xs text-white/70">
+                                            {[
+                                                { label: 'Intereses', value: 20, total: 40, color: 'bg-orange-400' },
+                                                { label: 'Edad', value: 6, total: 20, color: 'bg-orange-400' },
+                                                { label: 'Nivel de ruido', value: 20, total: 20, color: 'bg-emerald-400' },
+                                                { label: 'Estilo de vida', value: 20, total: 20, color: 'bg-emerald-400' },
+                                            ].map(({ label, value, total, color }) => {
+                                                const percent = Math.round((value / total) * 100);
+                                                return (
+                                                    <div key={label}>
+                                                        <div className="flex justify-between mb-1">
+                                                            <span>{label}</span>
+                                                            <span className="text-white/60">{value} / {total} pts</span>
+                                                        </div>
+                                                        <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
+                                                            <div className={`h-full ${color}`} style={{ width: `${percent}%` }} />
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        <p className="mt-4 text-[11px] text-white/50 text-center">
+                                            Esta puntuación es una guía para ayudarte a encontrar personas con tu estilo de vida.
+                                        </p>
+                                    </div>
                             </div>
                         </div>
                     </div>
