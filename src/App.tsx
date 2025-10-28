@@ -13,7 +13,7 @@ import TenantDashboard, {
 } from './dashboards/TenantDashboard';
 import OwnerDashboard from './dashboards/OwnerDashboard';
 import HostDashboard from './dashboards/HostDashboard';
-import AdminDashboard from './dashboards/AdminDashboard';
+const AdminDashboard = React.lazy(() => import('./dashboards/AdminDashboard'));
 import AccountLayout from './pages/account/AccountLayout';
 import BlogPage from './pages/BlogPage';
 import AboutPage from './pages/AboutPage';
@@ -1450,17 +1450,21 @@ function App() {
         />;
       case 'admin-dashboard':
         if (!currentUser || currentUser.role !== UserRole.ADMIN) return <LoginPage onLogin={handleLogin} onRegister={handleRegister} initialMode="login" {...loginPageProps} />;
-        return <AdminDashboard 
-            users={users}
-            properties={properties}
-            blogPosts={blogPosts}
-            matches={matches}
-            onDeleteProperty={handleDeleteProperty}
-            onSetUserBanStatus={handleSetUserBanStatus}
-            onSaveBlogPost={handleSaveBlogPost}
-            onDeleteBlogPost={handleDeleteBlogPost}
-            onLogout={handleLogout}
-        />;
+        return (
+          <React.Suspense fallback={<div className="min-h-[50vh] flex items-center justify-center text-white">Cargando panel de administración…</div>}>
+            <AdminDashboard 
+              users={users}
+              properties={properties}
+              blogPosts={blogPosts}
+              matches={matches}
+              onDeleteProperty={handleDeleteProperty}
+              onSetUserBanStatus={handleSetUserBanStatus}
+              onSaveBlogPost={handleSaveBlogPost}
+              onDeleteBlogPost={handleDeleteBlogPost}
+              onLogout={handleLogout}
+            />
+          </React.Suspense>
+        );
       case 'account':
         if (!currentUser) return <LoginPage onLogin={handleLogin} onRegister={handleRegister} initialMode="login" {...loginPageProps} />;
         const backPage = currentUser.is_profile_complete 
