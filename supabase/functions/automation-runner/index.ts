@@ -156,5 +156,125 @@ serve(async (req) => {
     seqResults.push({ id: -1 as unknown as number, status: 'error', error: (outer as Error).message });
   }
 
-  return new Response(JSON.stringify({ processed: results.length, results, sequences: { processed: seqResults.length, results: seqResults } }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  // Process CRM campaigns
+  const campaignResults: Array<{ id: number; status: string; processed?: number; error?: string }> = [];
+  try {
+    const { data: campaigns, error: campErr } = await supabase
+      .from('crm_campaigns')
+      .select('id, name, template_id, list_id, tag_slug, definition, status')
+      .in('status', ['scheduled','running'])
+      .lte('scheduled_at', new Date().toISOString())
+      .order('scheduled_at', { ascending: true })
+      .limit(3);
+    if (campErr) throw campErr;
+
+    for (const c of (campaigns || []) as Array<{ id: number; name: string; template_id: number | null; list_id: number | null; tag_slug?: string | null; definition?: any; status: string }>) {
+      try {
+        // Load template
+        const { data: tpl, error: tplErr } = await supabase
+          .from('email_templates')
+          .select('provider, sendgrid_template_id')
+          .eq('id', c.template_id)
+          .maybeSingle();
+        if (tplErr) throw tplErr;
+        if (!tpl || tpl.provider !== 'sendgrid' || !tpl.sendgrid_template_id) throw new Error('Invalid template for campaign');
+
+        // Ensure recipients exist for this campaign if first run
+        if (c.status === 'scheduled') {
+          // Build base recipients
+          let contacts: Array<{ id: string; email: string }> = [];
+          if (c.list_id) {
+            const { data, error } = await supabase
+              .from('crm_list_members')
+              .select('contact_id, crm_contacts!inner(email)')
+              .eq('list_id', c.list_id)
+              .limit(5000);
+            if (error) throw error;
+            contacts = (data as any[]).map(r => ({ id: r.contact_id, email: r.crm_contacts.email })).filter(r => !!r.email);
+          } else if (c.tag_slug) {
+            const { data, error } = await supabase
+              .from('crm_contact_tags')
+              .select('contact_id, crm_contacts!inner(email), crm_tags!inner(slug)')
+              .eq('crm_tags.slug', c.tag_slug)
+              .limit(5000);
+            if (error) throw error;
+            contacts = (data as any[]).map(r => ({ id: r.contact_id, email: r.crm_contacts.email })).filter(r => !!r.email);
+          } else {
+            // Simple dynamic: city/locality + has_tags[]
+            const def = (c.definition || {}) as { city?: string; locality?: string; has_tags?: string[] };
+            let q = supabase.from('crm_contacts').select('id, email').limit(5000);
+            if (def.city) q = q.eq('city', def.city);
+            if (def.locality) q = q.eq('locality', def.locality);
+            const { data, error } = await q;
+            if (error) throw error;
+            contacts = (data as any[]).filter(r => !!r.email);
+            if (def.has_tags && def.has_tags.length > 0) {
+              // filter in batches by tag membership
+              const filtered: Array<{ id: string; email: string }> = [];
+              for (const chunk of contacts.reduce((acc: any[][], v, i) => { (acc[i>>7] ||= []).push(v); return acc; }, [])) {
+                const ids = chunk.map(c => c.id);
+                const { data: tagRows, error: tErr } = await supabase
+                  .from('crm_contact_tags')
+                  .select('contact_id, crm_tags!inner(slug)')
+                  .in('contact_id', ids)
+                  .in('crm_tags.slug', def.has_tags);
+                if (tErr) throw tErr;
+                const ok = new Set(tagRows?.map(r => r.contact_id));
+                filtered.push(...chunk.filter(c => ok.has(c.id)));
+              }
+              contacts = filtered;
+            }
+          }
+
+          // Insert recipients
+          if (contacts.length) {
+            const rows = contacts.map(cn => ({ campaign_id: c.id, contact_id: cn.id, status: 'pending' as const }));
+            // Insert in chunks to avoid row limit
+            for (let i = 0; i < rows.length; i += 500) {
+              const slice = rows.slice(i, i + 500);
+              await supabase.from('crm_campaign_recipients').insert(slice).then(() => ({})).catch(() => ({}));
+            }
+          }
+          await supabase.from('crm_campaigns').update({ status: 'running', started_at: new Date().toISOString() }).eq('id', c.id);
+        }
+
+        // Send up to 100 pending recipients per run
+        const { data: recipients, error: rErr } = await supabase
+          .from('crm_campaign_recipients')
+          .select('contact_id, crm_contacts!inner(email, name)')
+          .eq('campaign_id', c.id)
+          .eq('status', 'pending')
+          .limit(100);
+        if (rErr) throw rErr;
+        let sent = 0;
+        for (const r of (recipients || []) as any[]) {
+          try {
+            await sendViaSendGrid(sendgridApiKey, fromEmail, r.crm_contacts.email, (tpl as any).sendgrid_template_id, { name: r.crm_contacts.name });
+            await supabase.from('crm_campaign_recipients').update({ status: 'sent', sent_at: new Date().toISOString(), error: null }).eq('campaign_id', c.id).eq('contact_id', r.contact_id);
+            sent++;
+          } catch (e) {
+            await supabase.from('crm_campaign_recipients').update({ status: 'error', error: (e as Error).message }).eq('campaign_id', c.id).eq('contact_id', r.contact_id);
+          }
+        }
+
+        // Check if finished
+        const { count, error: leftErr } = await supabase
+          .from('crm_campaign_recipients')
+          .select('contact_id', { count: 'exact', head: true })
+          .eq('campaign_id', c.id)
+          .eq('status', 'pending');
+        if (!leftErr && (count ?? 0) === 0) {
+          await supabase.from('crm_campaigns').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', c.id);
+        }
+        campaignResults.push({ id: c.id, status: 'ok', processed: sent });
+      } catch (err) {
+        await supabase.from('crm_campaigns').update({ status: 'error' as const }).eq('id', c.id);
+        campaignResults.push({ id: c.id, status: 'error', error: (err as Error).message });
+      }
+    }
+  } catch (outer) {
+    campaignResults.push({ id: -1 as unknown as number, status: 'error', error: (outer as Error).message });
+  }
+
+  return new Response(JSON.stringify({ processed: results.length, results, sequences: { processed: seqResults.length, results: seqResults }, campaigns: { processed: campaignResults.length, results: campaignResults } }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 });

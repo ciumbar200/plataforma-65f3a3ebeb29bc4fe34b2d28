@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // Trigger the automation-runner function directly using its secret.
 
-import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 
@@ -62,4 +61,3 @@ main().catch((e) => {
   console.error('Unexpected error:', e);
   process.exit(1);
 });
-

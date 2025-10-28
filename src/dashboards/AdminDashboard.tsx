@@ -761,6 +761,9 @@ const CrmView: React.FC = () => {
   const [steps, setSteps] = useState<any[]>([]);
   const [stepForm, setStepForm] = useState<{ sequence_id?: number; position: number; delay_seconds: number; template_id?: number }>({ position: 1, delay_seconds: 86400 });
   const [enrollForm, setEnrollForm] = useState<{ contact_id?: string; sequence_id?: number; start_delay?: number }>({});
+  // Campaigns
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [campForm, setCampForm] = useState<{ name: string; template_id?: number; target: 'list' | 'tag' | 'dynamic'; list_id?: number; tag_slug?: string; city?: string; locality?: string; has_tags?: string[]; scheduled_at?: string }>({ name: '', target: 'list' });
 
   const loadContacts = async () => {
     const query = supabase.from('crm_contacts').select('*').order('created_at', { ascending: false }).limit(50);
@@ -781,12 +784,16 @@ const CrmView: React.FC = () => {
     const { data } = await supabase.from('crm_sequences').select('*').order('created_at', { ascending: false }).limit(100);
     setSequences((data as any[]) || []);
   };
+  const loadCampaigns = async () => {
+    const { data } = await supabase.from('crm_campaigns').select('*').order('created_at', { ascending: false }).limit(50);
+    setCampaigns((data as any[]) || []);
+  };
   const loadSteps = async (sequence_id: number) => {
     const { data } = await supabase.from('crm_sequence_steps').select('*').eq('sequence_id', sequence_id).order('position');
     setSteps((data as any[]) || []);
   };
 
-  useEffect(() => { void loadContacts(); void loadTags(); void loadTemplates(); void loadSequences(); }, []);
+  useEffect(() => { void loadContacts(); void loadTags(); void loadTemplates(); void loadSequences(); void loadCampaigns(); }, []);
 
   return (
     <div className="space-y-6">
@@ -998,6 +1005,100 @@ const CrmView: React.FC = () => {
               } catch (e) { alert('Error inscribiendo: ' + (e as any).message); }
             }} className="bg-indigo-600 hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-semibold text-white">Inscribir</button>
           </div>
+        </div>
+      </GlassCard>
+
+      {/* Campaigns */}
+      <GlassCard>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-lg font-semibold">Campañas (envíos masivos)</h4>
+        </div>
+        <div className="grid gap-3 md:grid-cols-3">
+          <label className="text-sm text-white/80">Nombre
+            <input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={campForm.name} onChange={e => setCampForm(s => ({ ...s, name: e.target.value }))} />
+          </label>
+          <label className="text-sm text-white/80">Plantilla
+            <select className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={campForm.template_id || ''} onChange={e => setCampForm(s => ({ ...s, template_id: e.target.value ? Number(e.target.value) : undefined }))}>
+              <option value="">—</option>
+              {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+          </label>
+          <label className="text-sm text-white/80">Cuándo (ISO)
+            <input placeholder="2025-12-31T20:00:00Z" className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={campForm.scheduled_at || ''} onChange={e => setCampForm(s => ({ ...s, scheduled_at: e.target.value }))} />
+          </label>
+        </div>
+        <div className="mt-3 grid gap-3 md:grid-cols-4">
+          <label className="text-sm text-white/80">Objetivo
+            <select className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={campForm.target} onChange={e => setCampForm(s => ({ ...s, target: e.target.value as any }))}>
+              <option value="list">Lista</option>
+              <option value="tag">Tag</option>
+              <option value="dynamic">Dinámico</option>
+            </select>
+          </label>
+          {campForm.target === 'list' && (
+            <label className="text-sm text-white/80">Lista
+              <select className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={campForm.list_id || ''} onChange={e => setCampForm(s => ({ ...s, list_id: e.target.value ? Number(e.target.value) : undefined }))}>
+                <option value="">—</option>
+                {/* Simplificación: cargar listas al arrancar si las necesitas */}
+                {/* Puedes reutilizar loadLists si añadimos estado */}
+              </select>
+            </label>
+          )}
+          {campForm.target === 'tag' && (
+            <label className="text-sm text-white/80">Tag slug
+              <input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={campForm.tag_slug || ''} onChange={e => setCampForm(s => ({ ...s, tag_slug: e.target.value }))} />
+            </label>
+          )}
+          {campForm.target === 'dynamic' && (
+            <>
+              <label className="text-sm text-white/80">Ciudad
+                <input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={campForm.city || ''} onChange={e => setCampForm(s => ({ ...s, city: e.target.value }))} />
+              </label>
+              <label className="text-sm text-white/80">Localidad
+                <input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={campForm.locality || ''} onChange={e => setCampForm(s => ({ ...s, locality: e.target.value }))} />
+              </label>
+              <label className="text-sm text-white/80">Tags (coma)
+                <input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" placeholder="moon-inquilino, verified" value={(campForm.has_tags || []).join(',')} onChange={e => setCampForm(s => ({ ...s, has_tags: e.target.value.split(',').map(v => v.trim()).filter(Boolean) }))} />
+              </label>
+            </>
+          )}
+          <div className="flex items-end">
+            <button onClick={async () => {
+              try {
+                if (!campForm.name || !campForm.template_id) { alert('Nombre y plantilla son obligatorios'); return; }
+                const payload: any = { name: campForm.name, template_id: campForm.template_id, status: 'scheduled' as const, scheduled_at: campForm.scheduled_at || new Date().toISOString() };
+                if (campForm.target === 'list') payload.list_id = campForm.list_id || null;
+                if (campForm.target === 'tag') payload.tag_slug = campForm.tag_slug || null;
+                if (campForm.target === 'dynamic') payload.definition = { city: campForm.city || undefined, locality: campForm.locality || undefined, has_tags: campForm.has_tags && campForm.has_tags.length ? campForm.has_tags : undefined };
+                const { error } = await supabase.from('crm_campaigns').insert(payload);
+                if (error) throw error;
+                setCampForm({ name: '', target: 'list' });
+                await loadCampaigns();
+                alert('Campaña programada');
+              } catch (e) { alert('Error creando campaña: ' + (e as any).message); }
+            }} className="bg-indigo-600 hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-semibold text-white">Programar</button>
+          </div>
+        </div>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full text-left text-white text-sm">
+            <thead className="sticky top-0 bg-black/30">
+              <tr>
+                <th className="p-2">Nombre</th>
+                <th className="p-2">Estado</th>
+                <th className="p-2">Programada</th>
+              </tr>
+            </thead>
+            <tbody>
+              {campaigns.map(c => (
+                <tr key={c.id} className="border-b border-white/10">
+                  <td className="p-2">{c.name}</td>
+                  <td className="p-2 capitalize">{c.status}</td>
+                  <td className="p-2">{c.scheduled_at ? new Date(c.scheduled_at).toLocaleString() : '—'}</td>
+                </tr>
+              ))}
+              {!campaigns.length && <tr><td className="p-3 text-white/70" colSpan={3}>Sin campañas.</td></tr>}
+            </tbody>
+          </table>
         </div>
       </GlassCard>
     </div>
