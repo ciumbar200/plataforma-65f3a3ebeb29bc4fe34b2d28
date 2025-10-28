@@ -31,7 +31,7 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, role, steps, onFi
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const activeStep = steps[current];
+  const activeStep = steps[current] ?? steps[0];
   const progress = useMemo(() => Math.round(((current + 1) / steps.length) * 100), [current, steps.length]);
 
   const handleChange = (name: string, value: string) => {
@@ -74,8 +74,17 @@ const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, role, steps, onFi
     try {
       setSaving(true);
       setError(null);
-      await upsertProgress(activeStep.id, payload, true);
-      await updateOnboardingCheckpoint(user, activeStep.id);
+      try {
+        await upsertProgress(activeStep.id, payload, true);
+      } catch (e) {
+        // Non-fatal: allow UX to continue, but log for visibility
+        console.warn('[onboarding] upsertProgress failed', (e as any)?.message);
+      }
+      try {
+        await updateOnboardingCheckpoint(user, activeStep.id);
+      } catch (e) {
+        console.warn('[onboarding] checkpoint update failed', (e as any)?.message);
+      }
       trackEvent('onboarding_step_saved', { role, step: activeStep.id });
 
       if (current < steps.length - 1) {

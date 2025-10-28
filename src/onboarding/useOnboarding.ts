@@ -25,7 +25,11 @@ export const useOnboardingProgress = (user: User | null, role: OnboardingRole) =
         .eq('user_id', user.id)
         .eq('role', role)
         .order('updated_at', { ascending: false });
-      if (error) throw error;
+      if (error) {
+        console.warn('[onboarding] RLS/select error', error.message);
+        setSteps({});
+        return;
+      }
       const map: Record<string, StoredOnboardingStep> = {};
       data?.forEach((record) => {
         map[record.step] = {
@@ -64,7 +68,10 @@ export const useOnboardingProgress = (user: User | null, role: OnboardingRole) =
           { onConflict: 'user_id,role,step' }
         );
 
-      if (error) throw error;
+      if (error) {
+        console.warn('[onboarding] upsert error', error.message);
+        return;
+      }
 
       setSteps((prev) => ({
         ...prev,
