@@ -5,6 +5,24 @@ import type {
   User, Property, OwnerStats, Notification, SavedSearch, BlogPost
 } from './types';
 
+const BLOG_IMAGE_URLS = {
+  mooners: [
+    'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=1400&q=80',
+    'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=1400&q=80',
+    'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80',
+  ],
+  owners: [
+    'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80',
+    'https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1400&q=80',
+    'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1400&q=80',
+  ],
+  silver: [
+    'https://images.unsplash.com/photo-1543269664-76bc3997d9ea?auto=format&fit=crop&w=1400&q=80',
+    'https://images.unsplash.com/photo-1530023367847-a683933f4177?auto=format&fit=crop&w=1400&q=80',
+    'https://images.unsplash.com/photo-1548092372-0d1bd40894a3?auto=format&fit=crop&w=1400&q=80',
+  ],
+};
+
 // --- START: Supabase URL Helper ---
 // This helper function constructs the public URL for files stored in Supabase Storage.
 // It uses the project URL from your supabaseClient.ts and the specified bucket name.
@@ -151,7 +169,244 @@ export const MOCK_SAVED_SEARCHES: SavedSearch[] = [
 ];
 
 export const MOCK_BLOG_POSTS: BlogPost[] = [
-    { id: 1, slug: '5-consejos-para-una-convivencia-exitosa', title: '5 Consejos para una Convivencia Exitosa', excerpt: 'Descubre las claves para mantener la armonía en tu piso compartido. Desde la comunicación hasta la limpieza, te lo contamos todo.', image_url: getSupabaseUrl('property-media', 'blog01.webp'), content: '<h2>1. Comunicación Abierta y Honesta</h2><p>La base de cualquier buena relación, incluida la de compañeros de piso, es la comunicación...</p>', author: 'Laura Sánchez', author_image_url: getSupabaseUrl('avatars', 'author01.webp'), publish_date: '2024-07-15T12:00:00Z' },
+    {
+        id: 1,
+        slug: 'guia-mooners-comparte-hogar-con-claridad',
+        title: 'Guía MoOners: Cómo compartir hogar con claridad y buena vibra',
+        excerpt: 'Checklist profundo para estudiantes y jóvenes profesionales: define tus reglas, protege tu descanso y activa un piso lleno de apoyo mutuo.',
+        image_url: BLOG_IMAGE_URLS.mooners[0],
+        content: `
+            <p>Compartir piso con desconocidos ya no es una lotería: con datos, rituales y acuerdos claros se transforma en la forma más humana y sostenible de vivir en las grandes ciudades españolas.</p>
+            <h2>1. Diseña tu hogar ideal antes de publicar un anuncio</h2>
+            <p>Empieza por la introspección. Anota tu presupuesto real, los horarios en los que necesitas silencio, si trabajas remoto, si haces videollamadas, si practicas música, qué alergias tienes o qué hábitos alimenticios no quieres negociar.</p>
+            <ul>
+                <li><strong>Presupuesto consciente:</strong> suma alquiler, suministros, limpieza y un 10% de colchón para imprevistos.</li>
+                <li><strong>Mapa emocional:</strong> qué comportamientos te hacen sentir seguro y cuáles son líneas rojas (fiestas improvisadas, mascotas, tabaco).</li>
+                <li><strong>Calendario vital:</strong> define qué días visitas familia, recibes amistades o te desconectas.</li>
+            </ul>
+            <p>Con MoOn este autodiagnóstico forma parte del onboarding para que no dejes nada fuera.</p>
+            <h2>2. Primera videollamada = contrato social</h2>
+            <p>Los hogares MoOn con un encuentro inicial estructurado tienen un 37% menos de incidencias en los primeros 90 días. Usa la videollamada para co-crear un tablero digital con normas, turnos y protocolos de convivencia.</p>
+            <h2>3. Reunión de cinco minutos cada semana</h2>
+            <p>La fórmula “Check-in MoOn”: cada domingo, cinco minutos para revisar facturas, agenda común y cómo se siente cada persona. Si surge algo delicado, agendad una reunión aparte.</p>
+            <h2>4. Documenta los acuerdos en la app</h2>
+            <p>Nuestra herramienta de acuerdos convierte esas reglas en anexos digitales que todos firman. Eso evita malentendidos y te protege si alguien incumple.</p>
+            <blockquote>“Compartimos piso tres diseñadoras UX. Con el check-in semanal evitamos acumular tensión y mantenemos el piso impecable.” — Celia, 28 años, Mooner en Valencia</blockquote>
+            <h2>5. Plan de bienestar compartido</h2>
+            <p>Incluye actividades para reforzar la convivencia: cenas temáticas, rutinas deportivas, limpieza conjunta gamificada. Un piso sano nace de hábitos compartidos.</p>
+            <p><a href="#" data-page-target="register" class="inline-block mt-8 rounded-full bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 px-6 py-3 font-semibold text-slate-900">Crear mi perfil Mooner gratuito</a></p>
+        `,
+        author: 'María Luna · Head of Community',
+        author_image_url: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=200&h=200&fit=crop',
+        publish_date: '2025-02-18T08:30:00Z'
+    },
+    {
+        id: 2,
+        slug: 'primeros-30-dias-mooner-plan-de-accion',
+        title: 'Los primeros 30 días como Mooner: plan de acción para integrarte sin agobios',
+        excerpt: 'Checklist día a día para aterrizar en tu nuevo piso, conectar con tus compañer@s y disfrutar de la ciudad sin perder tus límites.',
+        image_url: BLOG_IMAGE_URLS.mooners[1],
+        content: `
+            <p>El primer mes en un hogar compartido marca el tono de la convivencia. Esta guía te acompaña desde que haces las maletas hasta que firmas el primer balance de gastos.</p>
+            <h2>Semana 1 · Aterriza y conoce el espacio</h2>
+            <ol>
+                <li>Haz una mini auditoría del piso (electrodomésticos, armarios, menaje). Documenta con fotos y súbelas al chat común MoOn.</li>
+                <li>Bloquea un rato para personalizar tu habitación con iluminación cálida, estanterías y plantas que absorban ruido.</li>
+                <li>Activa el tablero de incidencias. Si algo no funciona, se registra y se asigna responsable.</li>
+            </ol>
+            <h2>Semana 2 · Conecta personas y ritmos</h2>
+            <p>Organizad una cena informal para compartir lo que cada persona necesita para sentirse en casa. Propón un mural con cartas de “cómo apoyarme cuando…”</p>
+            <h2>Semana 3 · Finanzas y logística</h2>
+            <p>Automatizad pagos en la app de MoOn, definid límites de consumo energético y acordad compras recurrentes (limpieza, básicos de despensa).</p>
+            <h2>Semana 4 · Ritualiza bienestar</h2>
+            <p>Diseñad un calendario social: día de coworking, noche de peli, limpieza express gamificada. La constancia genera confianza.</p>
+            <blockquote>“Con el plan de 30 días nunca nos sentimos perdidos. Todo estaba pautado, hasta la playlist de la primera cena.” — Lucas, 24 años, Mooner en Madrid</blockquote>
+            <p><a href="#" data-page-target="register" class="inline-block mt-8 rounded-full border border-white/20 px-6 py-3 font-semibold text-white hover:bg-white/10">Empezar onboarding MoOn</a></p>
+        `,
+        author: 'Sara Contreras · Coach de Convivencias',
+        author_image_url: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80',
+        publish_date: '2025-02-22T09:10:00Z'
+    },
+    {
+        id: 3,
+        slug: 'presupuesto-colaborativo-mooners-plantilla',
+        title: 'Presupuesto colaborativo para Mooners: plantilla real con números y hacks de ahorro',
+        excerpt: 'Un ejemplo real de cómo tres profesionales gestionan 1.250€ de alquiler, servicios y ocio sin sorpresas ni dramas.',
+        image_url: BLOG_IMAGE_URLS.mooners[2],
+        content: `
+            <p>Compartimos el presupuesto real de un piso MoOn en Barcelona (Gràcia) ocupado por una diseñadora UX, un médico residente y un productor musical.</p>
+            <h2>1. Números base</h2>
+            <ul>
+                <li>Alquiler: 1.250€</li>
+                <li>Suministros variables: 210€ (luz, agua, gas, internet)</li>
+                <li>Limpieza quincenal: 120€</li>
+                <li>Fondo de mantenimiento: 60€</li>
+            </ul>
+            <p>Total mensual compartido: <strong>1.640€</strong>. Con nuestro algoritmo, el reparto se adapta a metros habitables y uso de teletrabajo.</p>
+            <h2>2. Reglas de oro</h2>
+            <p>Se establece un margen de 5% para subidas de energía, cada gasto se aprueba en el chat y se registra en la app de seguimiento de MoOn.</p>
+            <h2>3. Hack de ahorro: suscripciones compartidas</h2>
+            <p>Clases de yoga online, streaming premium, compra mensual a granel y car-sharing. Suman 86€ pero fomentan comunidad y salud.</p>
+            <h2>4. ¿Qué pasa si alguien se retrasa?</h2>
+            <p>Existe un protocolo: recordatorio automático, período de gracia y, si se repite, reunión con mediadora MoOn para redefinir compromisos.</p>
+            <p><a href="#" data-page-target="register" class="inline-block mt-8 rounded-full bg-gradient-to-r from-sky-400 via-purple-400 to-blue-400 px-6 py-3 font-semibold text-slate-900">Descargar plantilla editable</a></p>
+        `,
+        author: 'Equipo de Datos MoOn',
+        author_image_url: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=200&q=80',
+        publish_date: '2025-02-24T07:45:00Z'
+    },
+    {
+        id: 4,
+        slug: 'propietarios-guia-para-enamorar-a-inquilinos-ideales',
+        title: 'Propietarios: guía para enamorar a inquilinos ideales y cerrar visitas con decisión',
+        excerpt: 'Storytelling, fotografía y experiencia de bienvenida para convertir cada visita en una comunidad dispuesta a cuidar tu piso.',
+        image_url: BLOG_IMAGE_URLS.owners[0],
+        content: `
+            <p>El alquiler compartido es un servicio premium: vendes estabilidad, cuidado y comunidad. Aquí tienes la metodología MoOn Hosts para destacar en 2025.</p>
+            <h2>1. Construye una narrativa del espacio</h2>
+            <p>Más allá de los metros y la terraza, cuenta qué historias pueden vivirse allí: teletrabajo, cenas en la cocina, atardeceres en el balcón, barrio con cultura vibrante.</p>
+            <h2>2. Tour sensorial</h2>
+            <ul>
+                <li><strong>Vista:</strong> fotografía profesional + vídeo en vertical.</li>
+                <li><strong>Olfato:</strong> aroma neutro de hogar recién limpio.</li>
+                <li><strong>Gusto:</strong> detalles como té o fruta para la visita.</li>
+                <li><strong>Tacto:</strong> textiles suaves, sillas ergonómicas.</li>
+            </ul>
+            <h2>3. Presenta tu “Manual del Hogar”</h2>
+            <p>Incluye calendario de mantenimiento, contactos de confianza, reglas de convivencia y cómo responder ante urgencias. Esto transmite profesionalidad y reduce imprevistos.</p>
+            <h2>4. Convierte la visita en pre-onboarding</h2>
+            <p>Invita a los candidatos a un tour virtual con los actuales habitantes (si los hay) o presenta perfiles tipo. Los propietarios que integran a MoOn en las visitas cierran hasta un 60% más rápido.</p>
+            <p><a href="#" data-page-target="register" class="inline-block mt-8 rounded-full border border-white/20 px-6 py-3 font-semibold text-white hover:bg-white/10">Quiero ser anfitrión MoOn</a></p>
+        `,
+        author: 'Carla Dávila · Experta en Home Staging',
+        author_image_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+        publish_date: '2025-02-21T11:30:00Z'
+    },
+    {
+        id: 5,
+        slug: 'checklist-legal-propietarios-alquiler-compartido-seguro',
+        title: 'Checklist legal para propietarios: alquiler compartido seguro sin dolores de cabeza',
+        excerpt: 'Documentos imprescindibles, seguros y cláusulas recomendadas para blindar tu patrimonio cuando compartes tu vivienda.',
+        image_url: BLOG_IMAGE_URLS.owners[1],
+        content: `
+            <p>Legal y humano pueden convivir. Este checklist resume los requisitos más relevantes en España para alquilar de forma compartida en 2025.</p>
+            <h2>Documentación básica</h2>
+            <ul>
+                <li>DNI/NIE y escritura o contrato de propiedad.</li>
+                <li>Certificado de eficiencia energética actualizado.</li>
+                <li>Boletines de instalación eléctrica y gas si aplica.</li>
+                <li>Seguro multirriesgo con cobertura de responsabilidad civil.</li>
+            </ul>
+            <h2>Cláusulas recomendadas en el contrato</h2>
+            <p>Define el régimen de uso de zonas comunes, subarriendo, permanencia mínima y penalizaciones razonables. Incluye anexo de convivencia avalado por MoOn.</p>
+            <h2>Protección de datos y verificación</h2>
+            <p>Utiliza nuestra verificación KYC para gestionar DNI y nóminas cumpliendo RGPD. Los datos se almacenan cifrados y solo se comparten contigo cuando das el “OK”.</p>
+            <h2>Impuestos y fiscalidad</h2>
+            <p>Recoge todas las rentas, aplica deducciones por rehabilitación y guarda facturas de servicios. Si necesitas asesoramiento te ponemos en contacto con fiscalistas aliados.</p>
+            <p><a href="#" data-page-target="register" class="inline-block mt-8 rounded-full bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 px-6 py-3 font-semibold text-slate-900">Hablar con un advisor MoOn</a></p>
+        `,
+        author: 'Ignacio Ruiz · Abogado colaborador',
+        author_image_url: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=200&q=80',
+        publish_date: '2025-02-23T08:00:00Z'
+    },
+    {
+        id: 6,
+        slug: 'caso-exito-anfitriona-moon-transforma-su-piso',
+        title: 'Caso de éxito: cómo Ana llenó su piso en 10 días y duplicó ingresos con servicios premium',
+        excerpt: 'Aprende del método de una anfitriona MoOn que convirtió un piso vacío en un hogar rentable y bien cuidado.',
+        image_url: BLOG_IMAGE_URLS.owners[2],
+        content: `
+            <p>Ana heredó un piso de 3 habitaciones en Sevilla. Tras meses vacío, decidió probar MoOn y hoy tiene ingresos estables, contratos claros y convivencia feliz.</p>
+            <h2>1. Diagnóstico inicial</h2>
+            <p>Analizamos el barrio, perfil objetivo (profesionales sanitarios) y precio óptimo según compatibilidad y servicios.</p>
+            <h2>2. Home staging con propósito</h2>
+            <p>Invertimos 1.200€ en textiles, iluminación cálida y escritorio ergonómico en cada habitación. Resultado: 27 solicitudes cualificadas en 48 horas.</p>
+            <h2>3. Selección en tres fases</h2>
+            <ol>
+                <li>Filtro digital MoOn (identidad, solvencia, hábitos).</li>
+                <li>Videollamada grupal con preguntas de convivencia.</li>
+                <li>Visita presencial con tour guiado y manual del hogar.</li>
+            </ol>
+            <h2>4. Servicios extra</h2>
+            <p>Ana ofrece limpieza semanal, Netflix compartido y bienvenida gourmet. Coste 110€/mes, ingreso adicional 180€/mes.</p>
+            <blockquote>“Ahora siento que gestiono una comunidad, no solo habitaciones. Los inquilinos me envían un parte mensual y todo queda registrado.” — Ana, anfitriona MoOn Sevilla</blockquote>
+            <p><a href="#" data-page-target="register" class="inline-block mt-8 rounded-full border border-white/20 px-6 py-3 font-semibold text-white hover:bg-white/10">Quiero replicar este modelo</a></p>
+        `,
+        author: 'Equipo Customer Success MoOn',
+        author_image_url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80',
+        publish_date: '2025-02-25T12:20:00Z'
+    },
+    {
+        id: 7,
+        slug: 'silver-cuidar-comunidad-y-salud',
+        title: 'Silver: cómo cuidar tu salud y comunidad al compartir hogar después de los 60',
+        excerpt: 'Plan integral de bienestar físico, emocional y financiero para convivencias Silver que desean vivir con tranquilidad.',
+        image_url: BLOG_IMAGE_URLS.silver[0],
+        content: `
+            <p>Compartir hogar a partir de los 60 es una decisión estratégica. Ahorra, disminuye la soledad y mantiene tu autonomía. Este plan te guía paso a paso.</p>
+            <h2>1. Mapa de cuidado personal</h2>
+            <p>Trabajamos contigo y, si quieres, con tu familia: medicación, rutinas médicas, movilidad, alimentación y apoyo emocional.</p>
+            <h2>2. Protocolos de acompañamiento</h2>
+            <p>Establecemos números de emergencia, turnos de compra, asistencia vecinal y un circuito rápido con cuidadores profesionales aliados.</p>
+            <h2>3. Bienestar emocional</h2>
+            <p>Incluye círculos de escucha, actividades semanales y calendario de celebraciones. La felicidad también se planifica.</p>
+            <h2>4. Seguridad jurídica</h2>
+            <p>Contratos MoOn Silver recogen reparto de gastos, derechos de uso y protocolos ante hospitalizaciones, siempre con asesoría legal especializada.</p>
+            <p><a href="#" data-page-target="silver" class="inline-block mt-8 rounded-full bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 px-6 py-3 font-semibold text-slate-900">Solicitar acompañamiento Silver</a></p>
+        `,
+        author: 'Elena Morales · Programa Silver',
+        author_image_url: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=200&q=80',
+        publish_date: '2025-02-21T15:00:00Z'
+    },
+    {
+        id: 8,
+        slug: 'transforma-tu-vivienda-silver-paso-a-paso',
+        title: 'Transforma tu vivienda en un hogar Silver acogedor y accesible en 15 días',
+        excerpt: 'Checklist de adaptaciones sencillas para compartir tu casa con otras personas Silver manteniendo estilo y seguridad.',
+        image_url: BLOG_IMAGE_URLS.silver[1],
+        content: `
+            <p>Pequeños cambios generan grandes impactos. Estas adaptaciones convierten tu casa en un hogar apto para compartir con tranquilidad.</p>
+            <h2>1. Accesibilidad amable</h2>
+            <ul>
+                <li>Barras de apoyo en baño y ducha antideslizante.</li>
+                <li>Iluminación con sensores en pasillos y escaleras.</li>
+                <li>Interruptores y enchufes a 90 cm del suelo.</li>
+            </ul>
+            <h2>2. Zonas comunes que invitan a convivir</h2>
+            <p>Mesas redondas para facilitar conversación, sillones con apoyabrazos firmes y textiles cálidos. Añade rincones verdes con plantas de fácil mantenimiento.</p>
+            <h2>3. Habitaciones con privacidad garantizada</h2>
+            <p>Asegura aislamiento acústico con burletes, cortinas opacas y luz regulable. Cada persona necesita un espacio propio para descansar.</p>
+            <h2>4. Tecnología amiga</h2>
+            <p>Instala timbres inteligentes, asistentes de voz y sensores de fuga de agua conectados a la app de seguimiento MoOn Silver.</p>
+            <p><a href="#" data-page-target="silver" class="inline-block mt-8 rounded-full border border-white/20 px-6 py-3 font-semibold text-white hover:bg-white/10">Pedir diagnóstico de vivienda</a></p>
+        `,
+        author: 'Núria Pons · Arquitecta colaboradora',
+        author_image_url: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=200&q=80',
+        publish_date: '2025-02-23T16:25:00Z'
+    },
+    {
+        id: 9,
+        slug: 'silver-familias-y-cohabitar-con-tranquilidad',
+        title: 'Cómo conversar con tu familia sobre compartir hogar Silver y dar el paso con serenidad',
+        excerpt: 'Guía emocional y práctica para explicar a hij@s y seres queridos que compartir casa es una decisión consciente y segura.',
+        image_url: BLOG_IMAGE_URLS.silver[2],
+        content: `
+            <p>Decidir compartir hogar a los 60+ implica a tu círculo cercano. Esta guía te ayuda a comunicarlo con claridad, seguridad y entusiasmo.</p>
+            <h2>1. Cuéntales el “por qué”</h2>
+            <p>Habla de tu deseo de seguir en tu barrio, mantener tu independencia y ganar compañía. Comparte datos: convivencias Silver reducen la soledad un 68% según nuestros estudios internos.</p>
+            <h2>2. Presenta el plan MoOn</h2>
+            <p>Muestra el informe de compatibilidad, el contrato, el plan financiero y el seguimiento que hace nuestro equipo. Transparencia genera confianza.</p>
+            <h2>3. Involucra a la familia en la visita</h2>
+            <p>Pueden asistir a la visita virtual, conocer al equipo Silver y hacer preguntas. Así se sienten parte del proceso.</p>
+            <h2>4. Define un canal de comunicación</h2>
+            <p>Crea un grupo con familiares y equipo MoOn para compartir novedades y alertas. Mantiene la calma y evita malentendidos.</p>
+            <blockquote>“Mis hijas estaban nerviosas, pero al conocer al equipo Silver y ver el plan de cuidados se quedaron tranquilas.” — Carmen, 67 años, Silver en Madrid</blockquote>
+            <p><a href="#" data-page-target="silver" class="inline-block mt-8 rounded-full bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 px-6 py-3 font-semibold text-slate-900">Reservar llamada de escucha</a></p>
+        `,
+        author: 'Equipo de Mediación Familiar MoOn',
+        author_image_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80',
+        publish_date: '2025-02-26T09:55:00Z'
+    },
 ];
 
 export const MOCK_MATCHES: {[key: string]: string[]} = {

@@ -13,15 +13,55 @@ interface PageProps {
   onTermsClick: () => void;
   onContactClick: () => void;
   onSilverClick?: () => void;
+  onCalculadoraClick?: () => void;
+  onAmbassadorsClick?: () => void;
+  onReferFriendsClick?: () => void;
+  onBlueprintClick?: () => void;
 }
 
-const PrivacyPolicyPage: React.FC<PageProps> = ({ onHomeClick, onLoginClick, onOwnersClick, onBlogClick, onAboutClick, onPrivacyClick, onTermsClick, onContactClick, onSilverClick }) => {
+const PrivacyPolicyPage: React.FC<PageProps> = ({
+    onHomeClick,
+    onLoginClick,
+    onOwnersClick,
+    onBlogClick,
+    onAboutClick,
+    onPrivacyClick,
+    onTermsClick,
+    onContactClick,
+    onSilverClick,
+    onCalculadoraClick,
+    onAmbassadorsClick,
+    onReferFriendsClick,
+    onBlueprintClick,
+}) => {
 
-    const footerProps = { onBlogClick, onAboutClick, onPrivacyClick, onTermsClick, onContactClick, onSilverClick };
+    const footerProps = {
+        onBlogClick,
+        onAboutClick,
+        onPrivacyClick,
+        onTermsClick,
+        onContactClick,
+        onOwnersClick,
+        onSilverClick,
+        onAmbassadorsClick,
+        onReferFriendsClick,
+        onBlueprintClick,
+    };
 
     return (
-        <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-indigo-900 to-purple-900 text-white flex flex-col">
-            <Header onLoginClick={onLoginClick} onHomeClick={onHomeClick} onOwnersClick={onOwnersClick} pageContext="inquilino" />
+        <div className="min-h-[100dvh] w-full bg-gradient-to-br from-gray-900 via-indigo-900 to-purple-900 text-white flex flex-col">
+            <Header
+                onLoginClick={onLoginClick}
+                onHomeClick={onHomeClick}
+                onOwnersClick={onOwnersClick}
+                onBlogClick={onBlogClick}
+                onSilverClick={onSilverClick}
+                onCalculadoraClick={onCalculadoraClick}
+                onAmbassadorsClick={onAmbassadorsClick}
+                onReferFriendsClick={onReferFriendsClick}
+                onBlueprintClick={onBlueprintClick}
+                pageContext="inquilino"
+            />
             <main className="flex-grow py-12 px-4">
                 <div className="max-w-4xl mx-auto">
                     <GlassCard>

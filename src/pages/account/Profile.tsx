@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { User, UserRole } from '../../types';
 import GlassCard from '../../components/GlassCard';
 import { CITIES_DATA, COUNTRIES } from '../../constants';
-import { CameraIcon, ShieldCheckIcon } from '../../components/icons';
-import { supabase } from '../../lib/supabaseClient';
+import { CameraIcon } from '../../components/icons';
+import VerifyIdentity from '../../components/VerifyIdentity';
 
 interface ProfileProps {
   user: User;
@@ -12,6 +12,20 @@ interface ProfileProps {
 
 const ALL_INTERESTS = ['Yoga', 'Cocina Vegana', 'Viajar', 'Fotografía', 'Senderismo', 'Música Indie', 'Música en vivo', 'Cine', 'Salir de tapas', 'Arte Urbano', 'Videojuegos', 'Lectura', 'Teatro', 'Museos', 'Brunch', 'Deportes', 'Series', 'Fitness', 'Cocinar'];
 const ALL_LIFESTYLES = ['Diurno', 'Nocturno', 'Deportista', 'Creativo', 'Social', 'Intelectual', 'Eco-friendly', 'Tranquilo'];
+const MONTH_OPTIONS = [
+  { value: '1', label: 'Enero' },
+  { value: '2', label: 'Febrero' },
+  { value: '3', label: 'Marzo' },
+  { value: '4', label: 'Abril' },
+  { value: '5', label: 'Mayo' },
+  { value: '6', label: 'Junio' },
+  { value: '7', label: 'Julio' },
+  { value: '8', label: 'Agosto' },
+  { value: '9', label: 'Septiembre' },
+  { value: '10', label: 'Octubre' },
+  { value: '11', label: 'Noviembre' },
+  { value: '12', label: 'Diciembre' },
+];
 
 const Profile: React.FC<ProfileProps> = ({ user, onSave }) => {
   const [formData, setFormData] = useState(user);
@@ -20,34 +34,42 @@ const Profile: React.FC<ProfileProps> = ({ user, onSave }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const identityTips = [
-    'Documento de identidad vigente (DNI, NIE o pasaporte).',
-    'Selfie con buena iluminación para la comparación biométrica.',
-    'Comprobante de domicilio (factura o certificado de empadronamiento).'
-  ];
+  const [birthDay, setBirthDay] = useState('');
+  const [birthMonth, setBirthMonth] = useState('');
+  const [birthYear, setBirthYear] = useState('');
   
   useEffect(() => {
     setFormData(user);
     if (user.city) {
         setLocalities(CITIES_DATA[user.city] || []);
     }
+    if (user.birth_date) {
+        const [year, month, day] = user.birth_date.split('-');
+        const safeYear = year || '';
+        const safeMonth = month ? String(Number(month)) : '';
+        const safeDay = day ? String(Number(day)) : '';
+        setBirthYear(safeYear);
+        setBirthMonth(safeMonth);
+        setBirthDay(safeDay);
+        if (safeYear && safeMonth && safeDay) {
+            updateBirthDate(safeYear, safeMonth, safeDay);
+        }
+    } else {
+        setBirthYear('');
+        setBirthMonth('');
+        setBirthDay('');
+    }
   }, [user]);
 
   const validateField = (name: string, value: string) => {
     let fieldError: string | null = null;
     switch (name) {
-      case 'bio':
-        if (value.length < 100) {
-            fieldError = 'La biografía debe tener al menos 100 caracteres.';
-        }
-        break;
       case 'phone':
-        if (!value) fieldError = 'El teléfono es obligatorio.';
-        else if (!/^\+?[0-9\s-()]{7,20}$/.test(value)) fieldError = 'El formato del teléfono es inválido.';
+        if (!value.trim()) fieldError = 'El teléfono es obligatorio para coordinar verificaciones.';
+        else if (!/^\+?[0-9\s-()]{7,20}$/.test(value.trim())) fieldError = 'Introduce un teléfono válido (incluye el prefijo si es internacional).';
         break;
       case 'birth_country':
-        if (!value) fieldError = 'El país de nacimiento es obligatorio.';
+        if (!value) fieldError = 'Selecciona tu país de nacimiento.';
         break;
       default:
         break;
@@ -92,54 +114,129 @@ const Profile: React.FC<ProfileProps> = ({ user, onSave }) => {
     setFormData(prev => ({ ...prev, lifestyle }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (user.role === 'INQUILINO' && (!formData.bio || formData.bio.length < 100)) {
-        setErrors(prev => ({ ...prev, bio: 'La biografía debe tener al menos 100 caracteres para continuar.'}));
-        return;
+  const currentYear = useMemo(() => new Date().getFullYear(), []);
+  const yearOptions = useMemo(() => {
+    const maxYear = currentYear - 18;
+    const minYear = currentYear - 100;
+    const years: string[] = [];
+    for (let year = maxYear; year >= minYear; year -= 1) {
+      years.push(String(year));
     }
-    
-    if (!formData.phone || !formData.birth_country) {
-        alert('Por favor, completa los campos de teléfono y país de nacimiento.');
-        return;
+    return years;
+  }, [currentYear]);
+
+  const getDaysInMonth = (year: number, month: number) => {
+    if (!year || !month) return 31;
+    return new Date(year, month, 0).getDate();
+  };
+
+  const daysOptions = useMemo(() => {
+    const month = Number(birthMonth);
+    const year = Number(birthYear);
+    const totalDays = getDaysInMonth(year, month || 1);
+    return Array.from({ length: totalDays }, (_, index) => String(index + 1));
+  }, [birthMonth, birthYear]);
+
+  const calculateAge = (year: number, month: number, day: number) => {
+    if (!year || !month || !day) return null;
+    const today = new Date();
+    const birthDateObj = new Date(year, month - 1, day);
+    if (Number.isNaN(birthDateObj.getTime())) return null;
+    let ageYears = today.getFullYear() - year;
+    const monthDiff = today.getMonth() - (month - 1);
+    const dayDiff = today.getDate() - day;
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      ageYears -= 1;
+    }
+    return ageYears;
+  };
+
+  const updateBirthDate = (nextYear: string, nextMonth: string, nextDay: string) => {
+    let day = nextDay;
+    let month = nextMonth;
+    let year = nextYear;
+
+    const numericYear = Number(year);
+    const numericMonth = Number(month);
+    const daysInMonth = getDaysInMonth(numericYear, numericMonth || 1);
+    if (day && Number(day) > daysInMonth) {
+      day = String(daysInMonth);
+    }
+
+    setBirthYear(year);
+    setBirthMonth(month);
+    setBirthDay(day);
+
+    let errorMessage: string | null = null;
+    if (year && month && day) {
+      const numericDay = Number(day);
+      const ageValue = calculateAge(numericYear, numericMonth, numericDay);
+      if (ageValue === null) {
+        errorMessage = 'La fecha seleccionada no es válida.';
+      } else if (ageValue < 18) {
+        errorMessage = 'Necesitas ser mayor de 18 años para usar MoOn.';
+      } else if (ageValue > 100) {
+        errorMessage = 'Por favor, revisa tu fecha de nacimiento.';
+      } else {
+        const iso = `${numericYear}-${String(numericMonth).padStart(2, '0')}-${String(numericDay).padStart(2, '0')}`;
+        setFormData(prev => ({ ...prev, birth_date: iso, age: ageValue }));
+      }
+    } else {
+      setFormData(prev => ({ ...prev, birth_date: undefined, age: prev.age }));
+      errorMessage = 'Selecciona día, mes y año.';
+    }
+
+    setErrors(prev => ({ ...prev, birth_date: errorMessage }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const updatedData = { ...formData };
+    let hasBlockingError = false;
+
+    if (!birthYear || !birthMonth || !birthDay) {
+      setErrors(prev => ({ ...prev, birth_date: 'Selecciona tu fecha de nacimiento.' }));
+      hasBlockingError = true;
+    } else {
+      const numericYear = Number(birthYear);
+      const numericMonth = Number(birthMonth);
+      const numericDay = Number(birthDay);
+      const ageValue = calculateAge(numericYear, numericMonth, numericDay);
+      if (ageValue === null || ageValue < 18) {
+        setErrors(prev => ({ ...prev, birth_date: 'Fecha de nacimiento inválida.' }));
+        hasBlockingError = true;
+      } else {
+        updatedData.birth_date = `${numericYear}-${String(numericMonth).padStart(2, '0')}-${String(numericDay).padStart(2, '0')}`;
+        updatedData.age = ageValue;
+      }
+    }
+
+    if (!updatedData.phone) {
+      setErrors(prev => ({ ...prev, phone: 'Añade un teléfono para que podamos contactarte si surge alguna incidencia.' }));
+      hasBlockingError = true;
+    }
+
+    if (!updatedData.birth_country) {
+      setErrors(prev => ({ ...prev, birth_country: 'Selecciona tu país de nacimiento.' }));
+      hasBlockingError = true;
+    }
+
+    if (hasBlockingError) {
+      return;
     }
 
     setIsSaving(true);
-    onSave(formData);
+    try {
+      await onSave(updatedData);
+      setFormData(updatedData);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <GlassCard>
       <h2 className="text-2xl font-bold mb-6">Editar Perfil</h2>
-
-      <div className="mb-8 bg-white/5 border border-white/15 rounded-2xl p-5 sm:p-6 flex flex-col md:flex-row gap-6 items-start">
-        <div className="flex-shrink-0">
-          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-sky-500 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-indigo-900/40">
-            <ShieldCheckIcon className="w-6 h-6" />
-          </div>
-        </div>
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-white">Verifica tu identidad (recomendado)</h3>
-          <p className="text-sm text-white/70 mt-2">
-            {user.role === UserRole.PROPIETARIO
-              ? 'Refuerza la confianza de tus futuros inquilinos y agiliza la publicación de tus espacios.'
-              : 'Suma puntos de compatibilidad y acelera las conversaciones con propietarios verificados.'}
-          </p>
-          <ul className="mt-3 space-y-1 text-sm text-white/70 list-disc list-inside">
-            {identityTips.map((tip, index) => (
-              <li key={index}>{tip}</li>
-            ))}
-          </ul>
-        </div>
-        <div className="w-full md:w-auto">
-          <button
-            type="button"
-            className="w-full md:w-auto bg-gradient-to-r from-sky-500 to-violet-500 hover:from-sky-600 hover:to-violet-600 text-white font-semibold px-5 py-3 rounded-xl shadow-lg transition-colors"
-          >
-            Verificar identidad
-          </button>
-        </div>
-      </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="flex justify-center">
@@ -166,11 +263,52 @@ const Profile: React.FC<ProfileProps> = ({ user, onSave }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
            <div>
             <label htmlFor="name" className="block text-sm font-medium text-white/80 mb-1">Nombre</label>
-            <input type="text" name="name" id="name" value={formData.name} onChange={handleChange} className="w-full bg-white/10 border border-white/20 rounded-lg p-3 outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input type="text" name="name" id="name" value={formData.name} onChange={handleChange} placeholder="Ej. Marta López" className="w-full bg-white/10 border border-white/20 rounded-lg p-3 outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
-          <div>
-            <label htmlFor="age" className="block text-sm font-medium text-white/80 mb-1">Edad</label>
-            <input type="number" name="age" id="age" value={formData.age} onChange={handleChange} className="w-full bg-white/10 border border-white/20 rounded-lg p-3 outline-none focus:ring-2 focus:ring-indigo-500" />
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-white/80">Fecha de nacimiento</span>
+            <div className="grid grid-cols-3 gap-2">
+              <select
+                value={birthDay}
+                onChange={(event) => updateBirthDate(birthYear, birthMonth, event.target.value)}
+                className="rounded-xl bg-white/10 border border-white/20 p-3 text-white focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="" disabled hidden className="bg-gray-900">Día</option>
+                {daysOptions.map(day => (
+                  <option key={day} value={day} className="bg-gray-900">
+                    {day}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={birthMonth}
+                onChange={(event) => updateBirthDate(birthYear, event.target.value, birthDay)}
+                className="rounded-xl bg-white/10 border border-white/20 p-3 text-white focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="" disabled hidden className="bg-gray-900">Mes</option>
+                {MONTH_OPTIONS.map(month => (
+                  <option key={month.value} value={month.value} className="bg-gray-900">
+                    {month.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={birthYear}
+                onChange={(event) => updateBirthDate(event.target.value, birthMonth, birthDay)}
+                className="rounded-xl bg-white/10 border border-white/20 p-3 text-white focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="" disabled hidden className="bg-gray-900">Año</option>
+                {yearOptions.map(year => (
+                  <option key={year} value={year} className="bg-gray-900">
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {errors.birth_date && <span className="text-xs text-red-400">{errors.birth_date}</span>}
+            {!errors.birth_date && formData.age && (
+              <span className="text-xs text-white/60">Edad calculada: {formData.age} años</span>
+            )}
           </div>
         </div>
 
@@ -180,7 +318,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onSave }) => {
                 Teléfono
                 <span className="text-xs text-white/60 ml-2">(Solo para uso interno, nunca será público)</span>
               </label>
-              <input type="tel" name="phone" id="phone" value={formData.phone || ''} onChange={handleChange} onBlur={(e) => validateField('phone', e.target.value)} required className={`w-full bg-white/10 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-indigo-500 ${errors.phone ? 'border-red-500' : 'border-white/20'}`} />
+              <input type="tel" name="phone" id="phone" value={formData.phone || ''} onChange={handleChange} onBlur={(e) => validateField('phone', e.target.value)} required placeholder="Ej. +34 612 345 678" className={`w-full bg-white/10 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-indigo-500 ${errors.phone ? 'border-red-500' : 'border-white/20'}`} />
               {errors.phone && <p className="text-red-400 text-xs mt-1">{errors.phone}</p>}
             </div>
             <div>
@@ -195,10 +333,18 @@ const Profile: React.FC<ProfileProps> = ({ user, onSave }) => {
 
         <div>
           <label htmlFor="bio" className="block text-sm font-medium text-white/80 mb-1">Biografía</label>
-          <textarea name="bio" id="bio" value={formData.bio || ''} onChange={handleChange} rows={4} className={`w-full bg-white/10 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-indigo-500 ${errors.bio ? 'border-red-500' : 'border-white/20'}`}></textarea>
+          <textarea
+            name="bio"
+            id="bio"
+            value={formData.bio || ''}
+            onChange={handleChange}
+            rows={4}
+            placeholder="Escribe cómo vives, horarios, lo que te hace buen conviviente y qué buscas. Ej: 'Trabajo remoto, me gusta cocinar los domingos y busco gente ordenada.'"
+            className={`w-full bg-white/10 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-indigo-500 ${errors.bio ? 'border-red-500' : 'border-white/20'}`}
+          ></textarea>
           <div className="flex justify-between items-center mt-1">
-            {errors.bio && <p className="text-red-400 text-xs">{errors.bio}</p>}
-            <p className={`text-xs ml-auto ${ (formData.bio?.length || 0) < 100 ? 'text-white/60' : 'text-green-400'}`}>Caracteres: {formData.bio?.length || 0} / 100</p>
+            <p className="text-xs text-white/60">Sugerencia: 60+ caracteres nos ayudan a introducir tu vibra.</p>
+            <p className={`text-xs ${ (formData.bio?.length || 0) < 60 ? 'text-white/60' : 'text-green-400'}`}>Caracteres: {formData.bio?.length || 0}</p>
           </div>
         </div>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -228,7 +374,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onSave }) => {
                 value={formData.video_url || ''} 
                 onChange={handleChange} 
                 className="w-full bg-white/10 border border-white/20 rounded-lg p-3 outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="https://... (máx. 20 segundos)"
+                placeholder="https://tu-video.com/intro (máx. 20 segundos)"
                 />
                 <p className="text-xs text-white/60 mt-1">
                 Un vídeo corto aumenta tus posibilidades de encontrar un match.
@@ -275,12 +421,25 @@ const Profile: React.FC<ProfileProps> = ({ user, onSave }) => {
             </div>
         </>
 
-        <div className="flex justify-end pt-4">
-          <button type="submit" disabled={isSaving} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed">
-            {isSaving ? 'Guardando...' : 'Guardar Cambios'}
-          </button>
-        </div>
-      </form>
+      <div className="flex justify-end pt-4">
+        <button type="submit" disabled={isSaving} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed">
+          {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+        </button>
+      </div>
+    </form>
+
+      <div className="mt-10">
+        <VerifyIdentity
+          user={user}
+          onStatusChange={(status) => {
+            setFormData((prev) => ({
+              ...prev,
+              verification_status: status,
+              is_verified: status === 'approved',
+            }));
+          }}
+        />
+      </div>
     </GlassCard>
   );
 };

@@ -1,34 +1,64 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="es" class="dark">
   <head>
     <meta charset="UTF-8" />
+    <meta name="google" content="notranslate" />
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/moon-favicon.svg" />
     <link rel="apple-touch-icon" href="/moon-favicon.svg" />
+    <link rel="canonical" href="https://moonsharedliving.com/" />
 
     <!-- SEO & Social Sharing Meta Tags -->
-    <title>MoOn - Encuentra Tu Espacio</title>
-    <meta name="description" content="Plataforma de Vivienda Compartida" />
+    <title>MoOn | Vivienda compartida empática en España</title>
+    <meta name="description" content="MoOn es la plataforma española que conecta inquilinos, propietarios y personas Silver para compartir hogar con contratos claros, matching empático y acompañamiento humano." />
+    <meta name="keywords" content="vivienda compartida, alquiler habitaciones, convivencias senior, cohousing, compañeros piso compatibles, propietarios alquiler seguro" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="MoOn Shared Living" />
     <meta name="theme-color" content="#1e1b4b">
     
     <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://moon-app.aistudios.dev/">
-    <meta property="og:title" content="MoOn - Encuentra Tu Espacio">
-    <meta property="og:description" content="Plataforma de Vivienda Compartida">
-    <meta property="og:image" content="https://vogzzdnxoldgfpsrobps.supabase.co/storage/v1/object/public/property-media/moon-og-image.png">
-    <meta property="og:image:alt" content="Logo de MoOn, una luna creciente sobre un fondo degradado morado oscuro.">
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://moonsharedliving.com/" />
+    <meta property="og:title" content="MoOn | Vivienda compartida empática en España" />
+    <meta property="og:description" content="Encuentra compañeros de piso compatibles, alquila tu habitación con garantías o comparte hogar Silver con apoyo humano 24/7." />
+    <meta property="og:image" content="https://vogzzdnxoldgfpsrobps.supabase.co/storage/v1/object/public/property-media/moon-og-image.png" />
+    <meta property="og:image:alt" content="Ilustración del universo MoOn con jóvenes, propietarios y personas Silver compartiendo hogar." />
+    <meta property="og:site_name" content="MoOn Shared Living" />
+    <meta property="og:locale" content="es_ES" />
     
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://moon-app.aistudios.dev/">
-    <meta property="twitter:title" content="MoOn - Encuentra Tu Espacio">
-    <meta property="twitter:description" content="Plataforma de Vivienda Compartida">
-    <meta property="twitter:image" content="https://vogzzdnxoldgfpsrobps.supabase.co/storage/v1/object/public/property-media/moon-og-image.png">
-    <meta property="twitter:image:alt" content="Logo de MoOn, una luna creciente sobre un fondo degradado morado oscuro.">
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://moonsharedliving.com/" />
+    <meta property="twitter:title" content="MoOn | Vivienda compartida empática en España" />
+    <meta property="twitter:description" content="Matching por afinidad, contratos transparentes y acompañamiento humano para compartir hogar sin sorpresas." />
+    <meta property="twitter:image" content="https://vogzzdnxoldgfpsrobps.supabase.co/storage/v1/object/public/property-media/moon-og-image.png" />
+    <meta property="twitter:image:alt" content="Ilustración del universo MoOn con jóvenes, propietarios y personas Silver compartiendo hogar." />
+    <meta name="twitter:site" content="@moonsharedliving" />
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "MoOn Shared Living",
+  "url": "https://moonsharedliving.com/",
+  "logo": "https://vogzzdnxoldgfpsrobps.supabase.co/storage/v1/object/public/property-media/moon-og-image.png",
+  "sameAs": [
+    "https://www.instagram.com/moonsharedliving",
+    "https://www.linkedin.com/company/moon-shared-living"
+  ],
+  "description": "Plataforma española de vivienda compartida que ofrece matching empático, contratos transparentes y acompañamiento humano para inquilinos, propietarios y convivencias Silver.",
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer support",
+    "email": "hello@moonsharedliving.com",
+    "telephone": "+34 617 135 406",
+    "areaServed": "ES"
+  }
+}
+    </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
   <script type="importmap">
@@ -42,7 +72,7 @@
   }
 }
 </script>
-<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB89VOPrHqUVFJlfmo8utAy36J0gx9hlJk"></script>
+<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB89VOPrHqUVFJlfmo8utAy36J0gx9hlJk&libraries=drawing,geometry"></script>
 <style>
   html { scroll-behavior: smooth; }
   @keyframes fadeInDown {
@@ -71,6 +101,82 @@
   .animate-fade-in-up {
     animation: fadeInUp 0.6s ease-out forwards;
     opacity: 0; /* Start hidden */
+  }
+  @keyframes matchConfettiFall {
+    0% {
+      transform: translate3d(0, -120%, 0) rotate(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate3d(0, 120vh, 0) rotate(360deg);
+      opacity: 0;
+    }
+  }
+  .match-confetti {
+    position: absolute;
+    top: -12%;
+    width: 12px;
+    height: 32px;
+    border-radius: 9999px;
+    opacity: 0;
+    animation: matchConfettiFall 6s linear infinite;
+    filter: blur(0.4px);
+  }
+  .match-confetti:nth-child(odd) {
+    width: 10px;
+    height: 26px;
+  }
+  .match-confetti:nth-child(3n) {
+    animation-duration: 5.5s;
+  }
+  @keyframes matchFloat {
+    0% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+  .match-avatar {
+    animation: matchFloat 6s ease-in-out infinite;
+  }
+  @keyframes matchHeartbeat {
+    0%, 100% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.18);
+    }
+    60% {
+      transform: scale(1.12);
+    }
+  }
+  .match-heart {
+    animation: matchHeartbeat 1.8s ease-in-out infinite;
+  }
+  @keyframes matchRadiate {
+    0% {
+      transform: scale(0.9);
+      opacity: 0.8;
+    }
+    60% {
+      transform: scale(1.35);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+  }
+  .match-heart-outline {
+    border: 1.5px solid rgba(255, 255, 255, 0.45);
+    animation: matchRadiate 2.4s ease-in-out infinite;
   }
 </style>
 </head>

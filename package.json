@@ -6,18 +6,50 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "setup:automation-secret": "node scripts/setup-automation-secret.mjs",
+    "queue:test-email": "node scripts/queue-test-email.mjs",
+    "automation:trigger": "node scripts/run-automation-now.mjs",
+    "admin:promote": "node scripts/promote-admin.mjs",
+    "seed:demo": "ts-node --swc scripts/seed-demo-data.ts",
+    "reset:demo": "ts-node --swc scripts/reset-demo-data.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.75.1",
+    "leaflet": "^1.9.4",
+    "leaflet-draw": "^1.0.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "recharts": "^3.1.2",
-    "@supabase/supabase-js": "latest"
+    "recharts": "^3.1.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.48.2",
+    "@storybook/addon-essentials": "^8.3.5",
+    "@storybook/addon-interactions": "^8.3.5",
+    "@storybook/addon-links": "^8.3.5",
+    "@storybook/blocks": "^8.3.5",
+    "@storybook/react": "^8.3.5",
+    "@storybook/react-vite": "^8.3.5",
+    "@storybook/testing-library": "^0.2.2",
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/fs-extra": "^11.0.4",
     "@types/node": "^22.14.0",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
     "@vitejs/plugin-react": "^5.0.0",
+    "dotenv": "^16.4.5",
+    "storybook": "^8.3.5",
+    "ts-node": "^10.9.2",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "vitest": "^1.6.0"
   }
 }

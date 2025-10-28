@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Property } from '../../types';
 import { EyeIcon, UsersIcon, PlayIcon, PencilIcon, CalendarIcon } from '../../components/icons';
 import VideoPlayerModal from './VideoPlayerModal';
+import { getCozyCoverImage } from '../../lib/propertyImages';
 
 interface PropertyCardProps {
     property: Property;
@@ -25,15 +26,25 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onEdit, onCardCli
         onEdit?.(property);
     };
 
-    const mainImageUrl = property.image_urls && property.image_urls.length > 0
+    const mainImageUrl = Array.isArray(property.image_urls) && property.image_urls.length > 0
         ? property.image_urls[0]
-        : 'https://placehold.co/800x600/1e1b4b/ffffff?text=Sin+Imagen';
+        : getCozyCoverImage(property);
 
-    const formattedDate = new Date(property.available_from + 'T00:00:00').toLocaleDateString('es-ES', {
-        day: 'numeric',
-        month: 'short',
-        year: '2-digit'
-    });
+    let formattedDate: string | null = null;
+    if (property.available_from) {
+        const parsedDate = new Date(property.available_from);
+        if (!Number.isNaN(parsedDate.getTime())) {
+            formattedDate = parsedDate.toLocaleDateString('es-ES', {
+                day: 'numeric',
+                month: 'short',
+                year: '2-digit',
+            });
+        }
+    }
+    const views = typeof property.views === 'number' ? property.views : Number(property.views ?? 0);
+    const candidates = typeof property.compatible_candidates === 'number'
+        ? property.compatible_candidates
+        : Number(property.compatible_candidates ?? 0);
     
     const fullAddress = [property.address, property.locality, property.city].filter(Boolean).join(', ');
 
@@ -81,17 +92,19 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onEdit, onCardCli
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-green-300 mb-3 font-semibold">
                         <CalendarIcon className="w-4 h-4" />
-                        <span>Disponible a partir del {formattedDate}</span>
+                        <span>
+                            {formattedDate ? `Disponible a partir del ${formattedDate}` : 'Fecha de disponibilidad a confirmar'}
+                        </span>
                     </div>
                     <p className="text-xl font-bold mb-4">€{property.price}<span className="text-sm font-normal text-white/70">/mes</span></p>
                     <div className="flex justify-between text-sm text-white/80 border-t border-white/20 pt-2">
                         <div className="flex items-center gap-2">
                             <EyeIcon className="w-5 h-5" />
-                            <span>{property.views.toLocaleString()} visitas</span>
+                            <span>{Number.isFinite(views) ? views.toLocaleString() : '0'} visitas</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <UsersIcon className="w-5 h-5" />
-                            <span>{property.compatible_candidates} candidatos</span>
+                            <span>{Number.isFinite(candidates) ? candidates.toLocaleString() : '0'} candidatos</span>
                         </div>
                     </div>
                 </div>

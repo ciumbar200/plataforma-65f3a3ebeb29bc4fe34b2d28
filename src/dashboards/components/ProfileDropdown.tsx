@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User } from '../../types';
 import { LogoutIcon, PencilIcon, ChevronDownIcon, UserCircleIcon } from '../../components/icons';
+import { useI18n } from '../../i18n';
 
 interface ProfileDropdownProps {
   user: User;
@@ -11,6 +12,7 @@ interface ProfileDropdownProps {
 const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ user, onLogout, onAccountSettings }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -54,7 +56,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ user, onLogout, onAcc
               className="w-full flex items-center gap-3 px-3 py-2 text-sm text-left text-white/90 rounded-md hover:bg-white/10 transition-colors"
             >
               <PencilIcon className="w-5 h-5 text-white/60" />
-              <span>Ajustes de Cuenta</span>
+              <span>{t('header.menu.accountSettings')}</span>
             </button>
             <button
               onClick={() => {
@@ -64,7 +66,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ user, onLogout, onAcc
               className="w-full flex items-center gap-3 px-3 py-2 text-sm text-left text-red-400 rounded-md hover:bg-red-500/20 transition-colors"
             >
               <LogoutIcon className="w-5 h-5" />
-              <span>Cerrar Sesión</span>
+              <span>{t('header.menu.logout')}</span>
             </button>
           </div>
         </div>

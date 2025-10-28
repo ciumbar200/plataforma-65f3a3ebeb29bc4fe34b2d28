@@ -10,6 +10,20 @@ interface CandidateGroupCardProps {
 }
 
 const CandidateGroupCard: React.FC<CandidateGroupCardProps> = ({ group, onInvite, isInvited }) => {
+  const vibeTags = Array.from(
+    new Set(
+      group.flatMap((user) => {
+        const persona = user.convivencia_persona as { dominantTags?: string[] } | null | undefined;
+        return Array.isArray(persona?.dominantTags) ? persona!.dominantTags! : [];
+      }),
+    ),
+  ).slice(0, 6);
+  const personaSummary = group
+    .map((user) => {
+      const persona = user.convivencia_persona as { summary?: string } | null | undefined;
+      return persona?.summary;
+    })
+    .find((summary) => summary);
 
   return (
     <GlassCard className="!p-4 mb-4 !bg-black/20">
@@ -30,6 +44,20 @@ const CandidateGroupCard: React.FC<CandidateGroupCardProps> = ({ group, onInvite
               {group.map(user => user.name).join(', ')}
             </div>
           </div>
+          {(personaSummary || vibeTags.length) && (
+            <div className="mt-3 space-y-2">
+              {personaSummary && <p className="text-sm text-white/70">{personaSummary}</p>}
+              {vibeTags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {vibeTags.map((tag) => (
+                    <span key={tag} className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white/70">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <div className="flex-shrink-0 flex items-center w-full sm:w-auto">
           <button

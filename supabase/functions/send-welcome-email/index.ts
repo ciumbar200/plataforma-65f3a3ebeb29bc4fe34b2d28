@@ -13,7 +13,7 @@ declare const Deno: {
 interface UserProfile {
   email: string;
   name: string;
-  role: 'INQUILINO' | 'PROPIETARIO' | 'ADMIN';
+  role: 'INQUILINO' | 'PROPIETARIO' | 'ANFITRION' | 'ADMIN';
 }
 
 console.log("DEBUG: send-welcome-email function booting up!");
@@ -67,8 +67,9 @@ serve(async (req) => {
     let templateId: string;
     switch (userProfile.role) {
       case 'INQUILINO':
+      case 'ANFITRION':
         templateId = templateIdInquilino!;
-        console.log(`DEBUG: Role is INQUILINO. Selected template ID: ${templateId}`);
+        console.log(`DEBUG: Role is ${userProfile.role}. Selected template ID: ${templateId}`);
         break;
       case 'PROPIETARIO':
         templateId = templateIdPropietario!;

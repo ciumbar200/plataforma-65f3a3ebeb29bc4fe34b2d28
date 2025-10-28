@@ -15,6 +15,11 @@ interface CompatibilityModalProps {
   currentUser: User;
   otherUser: User | null;
   breakdown: CompatibilityBreakdown[];
+  copy?: {
+    title: string;
+    closeAria: string;
+    footnote: string;
+  };
 }
 
 const ProgressBar: React.FC<{ value: number, max: number }> = ({ value, max }) => {
@@ -30,8 +35,15 @@ const ProgressBar: React.FC<{ value: number, max: number }> = ({ value, max }) =
     );
 };
 
-const CompatibilityModal: React.FC<CompatibilityModalProps> = ({ isOpen, onClose, currentUser, otherUser, breakdown }) => {
+const DEFAULT_COMPATIBILITY_COPY = {
+  title: 'Detalle de Compatibilidad',
+  closeAria: 'Cerrar modal',
+  footnote: 'Esta puntuación es una guía para ayudarte a encontrar personas con un estilo de vida similar.',
+};
+
+const CompatibilityModal: React.FC<CompatibilityModalProps> = ({ isOpen, onClose, currentUser, otherUser, breakdown, copy }) => {
   if (!isOpen || !otherUser) return null;
+  const texts = copy ?? DEFAULT_COMPATIBILITY_COPY;
 
   return (
     <div
@@ -43,8 +55,8 @@ const CompatibilityModal: React.FC<CompatibilityModalProps> = ({ isOpen, onClose
         onClick={e => e.stopPropagation()}
       >
         <div className="p-6 border-b border-white/10 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Detalle de Compatibilidad</h2>
-          <button onClick={onClose} className="text-white/70 hover:text-white" aria-label="Cerrar modal">
+          <h2 className="text-2xl font-bold">{texts.title}</h2>
+          <button onClick={onClose} className="text-white/70 hover:text-white" aria-label={texts.closeAria}>
             <XIcon className="w-6 h-6" />
           </button>
         </div>
@@ -66,7 +78,7 @@ const CompatibilityModal: React.FC<CompatibilityModalProps> = ({ isOpen, onClose
                 ))}
             </div>
              <p className="text-xs text-center text-white/60 mt-6">
-                Esta puntuación es una guía para ayudarte a encontrar personas con un estilo de vida similar.
+                {texts.footnote}
             </p>
         </div>
       </GlassCard>

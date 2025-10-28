@@ -3,6 +3,7 @@
 export enum UserRole {
   INQUILINO = 'INQUILINO',
   PROPIETARIO = 'PROPIETARIO',
+  ANFITRION = 'ANFITRION',
   ADMIN = 'ADMIN',
 }
 
@@ -22,6 +23,7 @@ export interface User {
   locality?: string;
   rental_goal?: RentalGoal;
   age: number;
+  birth_date?: string;
   avatar_url: string;
   video_url?: string;
   interests: string[];
@@ -37,6 +39,19 @@ export interface User {
   budget?: number; // Monthly budget for rent
   religion?: string;
   sexual_orientation?: string;
+  is_verified?: boolean;
+  veriff_status?: string | null;
+  veriff_session_id?: string | null;
+  veriff_reason?: string | null;
+  verification_status?: 'none' | 'pending' | 'approved' | 'rejected';
+  verification_type?: string | null;
+  convivencia_quiz_completed?: boolean;
+  convivencia_quiz_version?: string | null;
+  convivencia_quiz_completed_at?: string | null;
+  convivencia_persona?: Record<string, unknown> | null;
+  onboarding_status?: 'pending' | 'in_progress' | 'completed';
+  onboarding_step?: string | null;
+  onboarding_updated_at?: string | null;
 }
 
 export type AmenityId = 
@@ -80,6 +95,26 @@ export interface Property {
   bathrooms?: number;
 }
 
+export interface HostListing {
+  id: number;
+  host_id: string;
+  title: string;
+  description?: string;
+  room_type: string;
+  price: number;
+  city?: string;
+  locality?: string;
+  address?: string;
+  available_from?: string;
+  amenities?: PropertyFeatures;
+  conditions?: string;
+  image_urls?: string[];
+  visibility: 'Pública' | 'Privada';
+  status: 'approved' | 'pending' | 'rejected';
+  created_at: string;
+  updated_at: string;
+}
+
 export interface OwnerStats {
     monthlyEarnings: { name: string; earnings: number }[];
     totalProperties: number;
@@ -100,10 +135,12 @@ export interface Notification {
   id: number;
   user_id: string;
   type: NotificationType;
-  message: string;
-  timestamp: string;
-  read: boolean;
-  related_entity_id?: number;
+  title: string;
+  body?: string | null;
+  metadata?: Record<string, unknown> | null;
+  delivered_at: string;
+  read_at?: string | null;
+  created_at: string;
 }
 
 export interface SavedSearch {
@@ -133,3 +170,26 @@ export interface BlogPost {
   author_image_url: string;
   publish_date: string;
 }
+
+export type ConvivenciaQuizAnswer = {
+  questionId: string;
+  answerId: string;
+  createdAt?: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type OnboardingStep = {
+  id: string;
+  title: string;
+  description?: string;
+  cta?: string;
+  inputs?: Array<{
+    name: string;
+    label: string;
+    placeholder?: string;
+    type?: 'text' | 'textarea' | 'number' | 'select' | 'choice';
+    options?: Array<{ value: string; label: string }>;
+    required?: boolean;
+    helper?: string;
+  }>;
+};

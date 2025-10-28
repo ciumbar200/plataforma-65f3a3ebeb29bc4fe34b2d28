@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { User, Property, UserRole, BlogPost } from '../types';
 import StatCard from './components/StatCard';
 import { UsersIcon, CheckCircleIcon, BuildingIcon, HeartIcon, ChartBarIcon, ClockIcon, FileTextIcon, SettingsIcon, EyeIcon, TrashIcon, BanIcon, PencilIcon, CheckIcon as CheckMarkIcon, XIcon, PlusIcon, AlertTriangleIcon, MoonIcon, LogoutIcon, MenuIcon } from '../components/icons';
@@ -8,8 +8,16 @@ import PropertyDetailsModal from './components/PropertyDetailsModal';
 import ConfirmationModal from './components/ConfirmationModal';
 import BlogEditorModal from './components/BlogEditorModal';
 import MatchesModal from './components/MatchesModal';
+import { supabase } from '../lib/supabaseClient';
+// @ts-ignore - Vite raw import of markdown
+import blueprintRaw from '../../docs/perfect-app-blueprint.md?raw';
+// @ts-ignore - Vite raw import of markdown
+import actionPlanRaw from '../../docs/perfect-app-action-plan.md?raw';
 
-type AdminTab = 'dashboard' | 'users' | 'properties' | 'blog' | 'settings';
+type ReferralStats = { invited: number; registered: number; verified: number; contracted: number };
+const defaultReferralStats: ReferralStats = { invited: 0, registered: 0, verified: 0, contracted: 0 };
+
+type AdminTab = 'dashboard' | 'users' | 'properties' | 'blog' | 'growth' | 'plan' | 'settings';
 
 // FIX: Define a type for navigation items to ensure type safety for optional properties like 'count'.
 type NavItem = {
@@ -37,6 +45,8 @@ const navItems: NavItem[] = [
     { id: 'users', label: 'Usuarios', icon: <UsersIcon className="w-5 h-5" /> },
     { id: 'properties', label: 'Propiedades', icon: <BuildingIcon className="w-5 h-5" /> },
     { id: 'blog', label: 'Blog', icon: <FileTextIcon className="w-5 h-5" /> },
+    { id: 'growth', label: 'Crecimiento', icon: <HeartIcon className="w-5 h-5" /> },
+    { id: 'plan', label: 'Plan estratégico', icon: <FileTextIcon className="w-5 h-5" /> },
     { id: 'settings', label: 'Ajustes', icon: <SettingsIcon className="w-5 h-5" /> },
 ];
 
@@ -58,6 +68,38 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const [modal, setModal] = useState<string | null>(null);
     const [modalPayload, setModalPayload] = useState<any>(null);
     const [isMatchesModalOpen, setIsMatchesModalOpen] = useState(false);
+    const [adminUsers, setAdminUsers] = useState<User[]>(users);
+    const [adminProperties, setAdminProperties] = useState<Property[]>(properties);
+    const [search, setSearch] = useState('');
+    const [roleFilter, setRoleFilter] = useState<'ALL' | UserRole>('ALL');
+    const [refreshing, setRefreshing] = useState(false);
+    const [referralStats, setReferralStats] = useState<ReferralStats>(defaultReferralStats);
+    const [isLoadingStats, setIsLoadingStats] = useState(false);
+
+    useEffect(() => {
+        const fetchReferralStats = async () => {
+            setIsLoadingStats(true);
+            try {
+                const statuses = ['invited','registered','verified','contracted'] as const;
+                const entries: Partial<ReferralStats> = {};
+                for (const s of statuses) {
+                    const { count, error } = await supabase
+                        .from('referrals')
+                        .select('id', { count: 'exact', head: true })
+                        .eq('status', s);
+                    if (error) throw error;
+                    (entries as any)[s] = count || 0;
+                }
+                setReferralStats(entries as ReferralStats);
+            } catch (e) {
+                console.warn('Referral stats error', (e as any)?.message);
+                setReferralStats(defaultReferralStats);
+            } finally {
+                setIsLoadingStats(false);
+            }
+        };
+        void fetchReferralStats();
+    }, []);
 
     const openModal = (name: string, payload?: any) => {
         setModal(name);
@@ -71,8 +113,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setSelectedProperty(null);
     };
     
-    const displayUsers = users.filter(u => u.role !== UserRole.ADMIN);
-    const approvedProperties = properties.filter(p => p.status === 'approved');
+    useEffect(() => { setAdminUsers(users); }, [users]);
+    useEffect(() => { setAdminProperties(properties); }, [properties]);
+
+    const normalizedSearch = search.trim().toLowerCase();
+    const filteredUsers = adminUsers
+        .filter(u => u.role !== UserRole.ADMIN)
+        .filter(u => roleFilter === 'ALL' ? true : u.role === roleFilter)
+        .filter(u => {
+            if (!normalizedSearch) return true;
+            return [u.name, u.email, u.city, u.locality].filter(Boolean).some(v => String(v).toLowerCase().includes(normalizedSearch));
+        });
+
+    const approvedProperties = adminProperties.filter(p => p.status === 'approved');
     
     const activeMatchesCount = useMemo(() => {
         let count = 0;
@@ -101,7 +154,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <>
             <h3 className="text-2xl font-bold mb-6 text-white">Resumen General</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <StatCard icon={<UsersIcon className="w-7 h-7 text-white" />} title="Total de Usuarios" value={displayUsers.length.toLocaleString()} color="indigo" />
+                <StatCard icon={<UsersIcon className="w-7 h-7 text-white" />} title="Total de Usuarios" value={filteredUsers.length.toLocaleString()} color="indigo" />
                 <StatCard 
                     icon={<HeartIcon className="w-7 h-7 text-white" />} 
                     title="Coincidencias Activas" 
@@ -112,12 +165,93 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <StatCard icon={<BuildingIcon className="w-7 h-7 text-white" />} title="Propiedades Listadas" value={approvedProperties.length.toLocaleString()} color="blue" />
                 <StatCard icon={<CheckCircleIcon className="w-7 h-7 text-white" />} title="Matches Exitosos" value="0" color="green" />
             </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <GlassCard>
+                    <h4 className="text-lg font-semibold mb-4">Usuarios por rol</h4>
+                    <ul className="space-y-2 text-white/90">
+                        <li>Inquilinos: <span className="font-bold">{filteredUsers.filter(u => u.role === UserRole.INQUILINO).length}</span></li>
+                        <li>Propietarios: <span className="font-bold">{filteredUsers.filter(u => u.role === UserRole.PROPIETARIO).length}</span></li>
+                        <li>Anfitriones: <span className="font-bold">{filteredUsers.filter(u => u.role === UserRole.ANFITRION).length}</span></li>
+                    </ul>
+                </GlassCard>
+                <GlassCard>
+                    <h4 className="text-lg font-semibold mb-4">Verificación</h4>
+                    <ul className="space-y-2 text-white/90">
+                        <li>Perfiles verificados: <span className="font-bold">{filteredUsers.filter(u => (u as any).is_verified).length}</span></li>
+                        <li>En revisión: <span className="font-bold">{filteredUsers.filter(u => (u as any).verification_status === 'pending').length}</span></li>
+                    </ul>
+                </GlassCard>
+                <GlassCard>
+                    <h4 className="text-lg font-semibold mb-4">Referidos</h4>
+                    {isLoadingStats ? (
+                        <p className="text-white/70">Cargando…</p>
+                    ) : (
+                        <ul className="space-y-2 text-white/90">
+                            <li>Invitados: <span className="font-bold">{referralStats.invited}</span></li>
+                            <li>Registrados: <span className="font-bold">{referralStats.registered}</span></li>
+                            <li>Verificados: <span className="font-bold">{referralStats.verified}</span></li>
+                            <li>Contratados: <span className="font-bold">{referralStats.contracted}</span></li>
+                        </ul>
+                    )}
+                </GlassCard>
+            </div>
+            <div className="mt-6">
+                <GlassCard>
+                    <h4 className="text-lg font-semibold mb-4">Últimos referidos</h4>
+                    <RecentReferrals />
+                </GlassCard>
+            </div>
         </>
     );
 
     const renderUsers = () => (
         <>
             <h3 className="text-2xl font-bold mb-6 text-white">Gestión de Usuarios</h3>
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between mb-4">
+                <div className="flex gap-2 items-center">
+                    <input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Buscar nombre, email o ciudad"
+                        className="rounded-md bg-white/10 border border-white/20 px-3 py-2 text-sm"
+                    />
+                    <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as any)} className="rounded-md bg-white/10 border border-white/20 px-3 py-2 text-sm">
+                        <option value="ALL">Todos</option>
+                        <option value={UserRole.INQUILINO}>Inquilinos</option>
+                        <option value={UserRole.PROPIETARIO}>Propietarios</option>
+                        <option value={UserRole.ANFITRION}>Anfitriones</option>
+                    </select>
+                </div>
+                <div className="flex gap-2">
+                    <button
+                        onClick={async () => {
+                            setRefreshing(true);
+                            try {
+                                const [{ data: u }, { data: p }] = await Promise.all([
+                                    supabase.from('profiles').select('*'),
+                                    supabase.from('properties').select('*'),
+                                ]);
+                                setAdminUsers((u as any) || []);
+                                setAdminProperties((p as any) || []);
+                            } catch {}
+                            setRefreshing(false);
+                        }}
+                        className="bg-white/10 hover:bg-white/20 px-3 py-2 rounded-md text-sm"
+                    >{refreshing ? 'Actualizando…' : 'Refrescar'}</button>
+                    <button
+                        onClick={() => {
+                            const rows = filteredUsers.map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role, city: u.city, locality: u.locality }));
+                            const header = Object.keys(rows[0] || { id: '', name: '', email: '', role: '', city: '', locality: '' });
+                            const csv = [header.join(','), ...rows.map(r => header.map(h => JSON.stringify((r as any)[h] ?? '')).join(','))].join('\n');
+                            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url; a.download = 'usuarios.csv'; a.click(); URL.revokeObjectURL(url);
+                        }}
+                        className="bg-indigo-600 hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-semibold text-white"
+                    >Exportar CSV</button>
+                </div>
+            </div>
             <GlassCard>
                 {/* Desktop Table */}
                 <div className="overflow-x-auto max-h-[60vh] hidden md:block">
@@ -131,7 +265,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             </tr>
                         </thead>
                         <tbody>
-                            {displayUsers.map(user => (
+                            {filteredUsers.map(user => (
                                 <tr key={user.id} className="border-b border-white/10 hover:bg-white/5">
                                     <td className="p-3">
                                         <div className="flex items-center gap-3">
@@ -150,6 +284,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                     </td>
                                     <td className="p-3 text-right">
                                         <button onClick={() => setSelectedUser(user)} className="text-indigo-400 hover:underline text-sm font-semibold px-2">Ver</button>
+                                        <button onClick={() => openModal('edit_user', user)} className="text-white/90 hover:underline text-sm font-semibold px-2">Editar</button>
                                         <button onClick={() => openModal('ban_user', user)} className={`font-semibold text-sm px-2 ${user.is_banned ? 'text-green-400 hover:underline' : 'text-red-400 hover:underline'}`}>
                                             {user.is_banned ? 'Quitar Ban' : 'Banear'}
                                         </button>
@@ -161,7 +296,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
                 {/* Mobile Cards */}
                 <div className="md:hidden space-y-4">
-                    {displayUsers.map(user => (
+                    {filteredUsers.map(user => (
                         <div key={user.id} className="bg-black/20 p-4 rounded-lg">
                             <div className="flex items-center gap-3 mb-3">
                                 <img src={user.avatar_url} alt={user.name} className="w-12 h-12 rounded-full object-cover" />
@@ -178,6 +313,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             </div>
                             <div className="flex justify-end gap-2 border-t border-white/10 pt-3">
                                 <button onClick={() => setSelectedUser(user)} className="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors">Ver</button>
+                                <button onClick={() => openModal('edit_user', user)} className="bg-indigo-500/20 text-indigo-200 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors">Editar</button>
                                 <button onClick={() => openModal('ban_user', user)} className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-colors ${user.is_banned ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
                                     {user.is_banned ? 'Quitar Ban' : 'Banear'}
                                 </button>
@@ -211,6 +347,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                     <td className="p-3"><span className={`text-xs font-semibold px-2 py-1 rounded-full ${prop.visibility === 'Pública' ? 'bg-green-500' : 'bg-yellow-500'}`}>{prop.visibility}</span></td>
                                     <td className="p-3 text-right">
                                         <button onClick={() => setSelectedProperty(prop)} className="text-indigo-400 hover:underline text-sm font-semibold px-2">Ver</button>
+                                        <button onClick={() => openModal('edit_property', prop)} className="text-white/90 hover:underline text-sm font-semibold px-2">Editar</button>
                                         <button onClick={() => openModal('delete_property', prop)} className="text-red-400 hover:underline text-sm font-semibold px-2">Eliminar</button>
                                     </td>
                                 </tr>
@@ -230,6 +367,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             </div>
                             <div className="flex justify-end gap-2 border-t border-white/10 pt-3">
                                 <button onClick={() => setSelectedProperty(prop)} className="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors">Ver</button>
+                                <button onClick={() => openModal('edit_property', prop)} className="bg-indigo-500/20 text-indigo-200 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors">Editar</button>
                                 <button onClick={() => openModal('delete_property', prop)} className="bg-red-500/20 text-red-300 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors">Eliminar</button>
                             </div>
                         </div>
@@ -238,6 +376,29 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </GlassCard>
         </>
     );
+
+    const PlanView: React.FC = () => {
+        const blueprint = blueprintRaw as unknown as string;
+        const actionPlan = actionPlanRaw as unknown as string;
+        return (
+            <div className="space-y-6">
+                <GlassCard>
+                    <h3 className="text-xl font-bold mb-3">Blueprint estratégico</h3>
+                    <div className="bg-black/40 rounded-xl p-4 overflow-auto max-h-[50vh]">
+                        <pre className="whitespace-pre-wrap text-sm text-white/90">{blueprint}</pre>
+                    </div>
+                </GlassCard>
+                {actionPlan && (
+                    <GlassCard>
+                        <h3 className="text-xl font-bold mb-3">Plan de acción</h3>
+                        <div className="bg-black/40 rounded-xl p-4 overflow-auto max-h-[50vh]">
+                            <pre className="whitespace-pre-wrap text-sm text-white/90">{actionPlan}</pre>
+                        </div>
+                    </GlassCard>
+                )}
+            </div>
+        );
+    };
 
     const renderBlog = () => (
          <>
@@ -327,6 +488,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             case 'users': return renderUsers();
             case 'properties': return renderProperties();
             case 'blog': return renderBlog();
+            case 'growth': return <GrowthView />;
+            case 'plan': return <PlanView />;
             case 'settings': return renderSettings();
             default: return null;
         }
@@ -400,7 +563,38 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 Icon={BanIcon}
                 color="red"
             />
-             <ConfirmationModal
+            <ConfirmationModal
+                isOpen={modal === 'delete_user'}
+                onClose={closeModal}
+                onConfirm={async () => {
+                    try {
+                        const { data: session } = await supabase.auth.getSession();
+                        const token = session.session?.access_token;
+                        if (!token) throw new Error('No session');
+                        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-delete-user`;
+                        const resp = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                            body: JSON.stringify({ user_id: modalPayload.id })
+                        });
+                        if (!resp.ok) {
+                            const j = await resp.json().catch(() => ({} as any));
+                            throw new Error((j as any).error || `Status ${resp.status}`);
+                        }
+                        setAdminUsers(prev => prev.filter(u => u.id !== modalPayload.id));
+                    } catch (e) {
+                        alert(`Error eliminando: ${(e as any).message}`);
+                    } finally {
+                        closeModal();
+                    }
+                }}
+                title={modalPayload?.name ? `Eliminar ${modalPayload.name}` : 'Eliminar usuario'}
+                description={'Esta acción eliminará al usuario y sus datos asociados. No se puede deshacer.'}
+                confirmText="Sí, eliminar"
+                Icon={TrashIcon}
+                color="red"
+            />
+            <ConfirmationModal
                 isOpen={modal === 'delete_property'}
                 onClose={closeModal}
                 onConfirm={() => {
@@ -446,3 +640,416 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 };
 
 export default AdminDashboard;
+
+// Minimal inline components for edit modals
+const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
+  <label className="block text-sm">
+    <span className="text-white/70">{label}</span>
+    <div className="mt-1">{children}</div>
+  </label>
+);
+
+const EditUserModal: React.FC<{ isOpen: boolean; onClose: () => void; onSaved: () => void; user: User }>= ({ isOpen, onClose, onSaved, user }) => {
+  const [form, setForm] = useState<any>({ name: user.name, email: user.email, role: user.role, city: user.city, locality: user.locality, bio: (user as any).bio, is_verified: (user as any).is_verified, verification_status: (user as any).verification_status });
+  const [saving, setSaving] = useState(false);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [loadingReferral, setLoadingReferral] = useState(false);
+  if (!isOpen) return null;
+  const update = (k: string, v: any) => setForm((s: any) => ({ ...s, [k]: v }));
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <GlassCard className="w-full max-w-lg text-white !p-0" onClick={e => e.stopPropagation()}>
+        <div className="p-4 border-b border-white/10">
+          <h3 className="text-lg font-bold">Editar usuario</h3>
+        </div>
+        <div className="p-4 space-y-3">
+          <Field label="Nombre"><input className="w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.name || ''} onChange={e => update('name', e.target.value)} /></Field>
+          <Field label="Email"><input className="w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.email || ''} onChange={e => update('email', e.target.value)} /></Field>
+          <Field label="Rol">
+            <select className="w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.role} onChange={e => update('role', e.target.value)}>
+              {Object.values(UserRole).map(r => (<option key={r} value={r}>{r}</option>))}
+            </select>
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Ciudad"><input className="w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.city || ''} onChange={e => update('city', e.target.value)} /></Field>
+            <Field label="Localidad"><input className="w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.locality || ''} onChange={e => update('locality', e.target.value)} /></Field>
+          </div>
+          <Field label="Bio"><textarea className="w-full rounded-md bg-white/10 border-white/20 px-3 py-2" rows={3} value={form.bio || ''} onChange={e => update('bio', e.target.value)} /></Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Verificado">
+              <select className="w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.is_verified ? 'true' : 'false'} onChange={e => update('is_verified', e.target.value === 'true')}>
+                <option value="false">No</option>
+                <option value="true">Sí</option>
+              </select>
+            </Field>
+            <Field label="Estado verificación">
+              <select className="w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.verification_status || 'none'} onChange={e => update('verification_status', e.target.value)}>
+                {['none','pending','approved','rejected'].map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </Field>
+          </div>
+          <div className="mt-2 p-3 rounded-lg bg-white/5 border border-white/10">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold">Link personal de referidos</p>
+                <p className="text-xs text-white/70">Úsalo para programas de embajadores.</p>
+              </div>
+              <button
+                disabled={loadingReferral}
+                onClick={async () => {
+                  setLoadingReferral(true);
+                  try {
+                    const { data, error } = await supabase.rpc('ensure_referral_link', { uid: user.id });
+                    if (error) throw error;
+                    setReferralCode(String(data));
+                  } catch (e) {
+                    alert('Error generando link: ' + (e as any).message);
+                  } finally { setLoadingReferral(false); }
+                }}
+                className="bg-white/10 hover:bg-white/20 disabled:opacity-50 px-3 py-1.5 rounded-md text-xs"
+              >{loadingReferral ? 'Generando…' : (referralCode ? 'Regenerar' : 'Generar')}</button>
+            </div>
+            {referralCode && (
+              <div className="mt-2">
+                <p className="text-xs break-all font-mono">Código: {referralCode}</p>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="p-4 border-t border-white/10 flex justify-end gap-2">
+          <button onClick={onClose} className="bg-white/10 hover:bg-white/20 px-3 py-2 rounded-md">Cancelar</button>
+          <button disabled={saving} onClick={async () => {
+            setSaving(true);
+            try {
+              const { error } = await supabase.from('profiles').update({
+                name: form.name, email: form.email, role: form.role, city: form.city, locality: form.locality, bio: form.bio,
+                is_verified: form.is_verified, verification_status: form.verification_status,
+              }).eq('id', user.id);
+              if (error) throw error;
+              onSaved();
+            } catch (e) {
+              alert(`Error guardando: ${(e as any).message}`);
+            } finally { setSaving(false); }
+          }} className="bg-indigo-500 px-3 py-2 rounded-md text-slate-900 font-semibold">Guardar</button>
+        </div>
+      </GlassCard>
+    </div>
+  );
+};
+
+const EditPropertyModal: React.FC<{ isOpen: boolean; onClose: () => void; onSaved: () => void; property: Property }>= ({ isOpen, onClose, onSaved, property }) => {
+  const [form, setForm] = useState<any>({ title: property.title, price: property.price, visibility: property.visibility, city: property.city, locality: property.locality, address: property.address, status: property.status });
+  const [saving, setSaving] = useState(false);
+  if (!isOpen) return null;
+  const update = (k: string, v: any) => setForm((s: any) => ({ ...s, [k]: v }));
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <GlassCard className="w-full max-w-lg text-white !p-0" onClick={e => e.stopPropagation()}>
+        <div className="p-4 border-b border-white/10">
+          <h3 className="text-lg font-bold">Editar propiedad</h3>
+        </div>
+        <div className="p-4 space-y-3">
+          <Field label="Título"><input className="w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.title || ''} onChange={e => update('title', e.target.value)} /></Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Precio (€)"><input type="number" className="w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.price || 0} onChange={e => update('price', Number(e.target.value))} /></Field>
+            <Field label="Visibilidad">
+              <select className="w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.visibility} onChange={e => update('visibility', e.target.value)}>
+                {['Pública','Privada'].map(v => <option key={v} value={v}>{v}</option>)}
+              </select>
+            </Field>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Ciudad"><input className="w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.city || ''} onChange={e => update('city', e.target.value)} /></Field>
+            <Field label="Localidad"><input className="w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.locality || ''} onChange={e => update('locality', e.target.value)} /></Field>
+          </div>
+          <Field label="Dirección"><input className="w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.address || ''} onChange={e => update('address', e.target.value)} /></Field>
+          <Field label="Estado">
+            <select className="w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.status} onChange={e => update('status', e.target.value)}>
+              {['pending','approved','rejected'].map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </Field>
+        </div>
+        <div className="p-4 border-t border-white/10 flex justify-end gap-2">
+          <button onClick={onClose} className="bg-white/10 hover:bg-white/20 px-3 py-2 rounded-md">Cancelar</button>
+          <button disabled={saving} onClick={async () => {
+            setSaving(true);
+            try {
+              const { error } = await supabase.from('properties').update({
+                title: form.title, price: form.price, visibility: form.visibility, city: form.city, locality: form.locality, address: form.address, status: form.status,
+              }).eq('id', property.id);
+              if (error) throw error;
+              onSaved();
+            } catch (e) {
+              alert(`Error guardando: ${(e as any).message}`);
+            } finally { setSaving(false); }
+          }} className="bg-indigo-500 px-3 py-2 rounded-md text-slate-900 font-semibold">Guardar</button>
+        </div>
+      </GlassCard>
+    </div>
+  );
+};
+
+const RecentReferrals: React.FC = () => {
+  const [rows, setRows] = useState<Array<{ id: number; referee_user_id: string | null; referee_email: string | null; status: string; created_at: string }>>([]);
+  const [loading, setLoading] = useState(true);
+  const load = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.from('referrals').select('id, referee_user_id, referee_email, status, created_at').order('created_at', { ascending: false }).limit(10);
+      if (error) throw error;
+      setRows((data as any) || []);
+    } catch (e) {
+      console.warn('RecentReferrals error', (e as any)?.message);
+    } finally { setLoading(false); }
+  };
+  useEffect(() => { void load(); }, []);
+  if (loading) return <p className="text-white/70">Cargando…</p>;
+  if (!rows.length) return <p className="text-white/70">Sin referidos recientes.</p>;
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-left text-white text-sm">
+        <thead className="sticky top-0 bg-black/30">
+          <tr>
+            <th className="p-2">Fecha</th>
+            <th className="p-2">Email</th>
+            <th className="p-2">Estado</th>
+            <th className="p-2 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(r => (
+            <tr key={r.id} className="border-b border-white/10">
+              <td className="p-2">{new Date(r.created_at).toLocaleString()}</td>
+              <td className="p-2">{r.referee_email || 'N/A'}</td>
+              <td className="p-2 capitalize">{r.status}</td>
+              <td className="p-2 text-right">
+                <button
+                  className="bg-emerald-500/20 text-emerald-200 px-3 py-1 rounded-md mr-2 disabled:opacity-50"
+                  disabled={!r.referee_user_id || r.status === 'contracted'}
+                  onClick={async () => {
+                    if (!r.referee_user_id) return;
+                    const { error } = await supabase.rpc('admin_mark_referral_contracted', { p_referee: r.referee_user_id });
+                    if (error) { alert('Error: ' + error.message); return; }
+                    void load();
+                  }}
+                >Marcar contratado</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+const GrowthView: React.FC = () => {
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [invites, setInvites] = useState<Array<{ id: number; code: string; invited_email: string | null; expires_at: string | null; created_at: string }>>([]);
+  const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState<{ count: number; invited_email: string; expires_at: string }>(() => ({ count: 5, invited_email: '', expires_at: '' }));
+  const [outbox, setOutbox] = useState<Array<{ id: number; to_email: string; template: string; status: string; scheduled_at: string; sent_at: string | null; error: string | null }>>([]);
+  const [exporting, setExporting] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const tok = data.session?.access_token ?? null;
+      setSessionToken(tok || null);
+    }).catch(() => setSessionToken(null));
+  }, []);
+
+  const listInvites = async () => {
+    if (!sessionToken) return;
+    setLoading(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ambassador-codes?limit=50`;
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${sessionToken}` } });
+      if (!res.ok) throw new Error(await res.text());
+      const body = await res.json();
+      setInvites(body.data || []);
+    } catch (e) {
+      console.warn('List invites error', (e as any).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createInvites = async () => {
+    if (!sessionToken) return;
+    setCreating(true);
+    try {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ambassador-codes`;
+      const payload: any = { count: Math.max(1, Math.min(100, Number(form.count) || 1)) };
+      if (form.invited_email.trim()) payload.invited_email = form.invited_email.trim();
+      if (form.expires_at.trim()) payload.expires_at = form.expires_at.trim();
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${sessionToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      await listInvites();
+    } catch (e) {
+      alert('Error creando códigos: ' + (e as any).message);
+    } finally { setCreating(false); }
+  };
+
+  const loadOutbox = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('email_outbox')
+        .select('id, to_email, template, status, scheduled_at, sent_at, error')
+        .order('scheduled_at', { ascending: false })
+        .limit(25);
+      if (error) throw error;
+      setOutbox((data as any) || []);
+    } catch (e) {
+      console.warn('Outbox error', (e as any).message);
+    }
+  };
+
+  useEffect(() => { void listInvites(); void loadOutbox(); }, [sessionToken]);
+
+  return (
+    <div className="space-y-6">
+      <h3 className="text-2xl font-bold mb-2 text-white">Crecimiento: embajadores, referidos y emails</h3>
+      <GlassCard>
+        <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <label className="text-sm text-white/80">Cantidad
+              <input type="number" min={1} max={100} className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.count} onChange={e => setForm(s => ({ ...s, count: Number(e.target.value || 1) }))} />
+            </label>
+            <label className="text-sm text-white/80">Email invitado (opcional)
+              <input placeholder="alguien@dominio.com" className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.invited_email} onChange={e => setForm(s => ({ ...s, invited_email: e.target.value }))} />
+            </label>
+            <label className="text-sm text-white/80">Expira (ISO opcional)
+              <input placeholder="2025-12-31T23:59:59Z" className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.expires_at} onChange={e => setForm(s => ({ ...s, expires_at: e.target.value }))} />
+            </label>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={createInvites} disabled={creating || !sessionToken} className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 px-3 py-2 rounded-md text-sm font-semibold text-white">{creating ? 'Creando…' : 'Crear códigos'}</button>
+            <button onClick={listInvites} disabled={loading || !sessionToken} className="bg-white/10 hover:bg-white/20 disabled:opacity-50 px-3 py-2 rounded-md text-sm">{loading ? 'Cargando…' : 'Refrescar'}</button>
+          </div>
+        </div>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full text-left text-white text-sm">
+            <thead className="sticky top-0 bg-black/30">
+              <tr>
+                <th className="p-2">Código</th>
+                <th className="p-2">Email</th>
+                <th className="p-2">Expira</th>
+                <th className="p-2">Creado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invites.map(row => (
+                <tr key={row.id} className="border-b border-white/10">
+                  <td className="p-2 font-mono text-xs">{row.code}</td>
+                  <td className="p-2">{row.invited_email || '—'}</td>
+                  <td className="p-2">{row.expires_at || '—'}</td>
+                  <td className="p-2">{new Date(row.created_at).toLocaleString()}</td>
+                </tr>
+              ))}
+              {!invites.length && (
+                <tr><td className="p-3 text-white/70" colSpan={4}>Sin códigos aún.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </GlassCard>
+
+      <GlassCard>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-lg font-semibold">Email Outbox (últimos 25)</h4>
+          <div className="flex gap-2">
+            <button onClick={loadOutbox} className="bg-white/10 hover:bg-white/20 px-3 py-2 rounded-md text-sm">Refrescar</button>
+            <button onClick={async () => { try { await fetch('/api/automation/trigger', { method: 'POST' }); await loadOutbox(); } catch (e) { alert('Error trigger: ' + (e as any).message); } }} className="bg-indigo-600 hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-semibold text-white">Ejecutar ahora</button>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-white text-sm">
+            <thead className="sticky top-0 bg-black/30">
+              <tr>
+                <th className="p-2">Para</th>
+                <th className="p-2">Template</th>
+                <th className="p-2">Estado</th>
+                <th className="p-2">Programado</th>
+                <th className="p-2">Enviado</th>
+                <th className="p-2 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {outbox.map(r => (
+                <tr key={r.id} className="border-b border-white/10">
+                  <td className="p-2">{r.to_email}</td>
+                  <td className="p-2 font-mono text-xs">{r.template}</td>
+                  <td className="p-2 capitalize">{r.status}</td>
+                  <td className="p-2">{new Date(r.scheduled_at).toLocaleString()}</td>
+                  <td className="p-2">{r.sent_at ? new Date(r.sent_at).toLocaleString() : '—'}</td>
+                  <td className="p-2 text-right">
+                    <button className="bg-white/10 hover:bg-white/20 px-2 py-1 rounded-md text-xs" disabled={r.status !== 'error'} onClick={async () => {
+                      const { error } = await supabase.from('email_outbox').update({ status: 'pending', scheduled_at: new Date().toISOString(), error: null }).eq('id', r.id);
+                      if (error) { alert('Error re-programando: ' + error.message); return; }
+                      await loadOutbox();
+                    }}>Re-intentar</button>
+                  </td>
+                </tr>
+              ))}
+              {!outbox.length && (
+                <tr><td className="p-3 text-white/70" colSpan={6}>Sin emails en cola.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </GlassCard>
+
+      <GlassCard>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-lg font-semibold">CRM rápido: exportar contactos con tags</h4>
+          <button
+            disabled={exporting}
+            onClick={async () => {
+              setExporting(true);
+              try {
+                const { data, error } = await supabase
+                  .from('profiles')
+                  .select('id, name, email, role, city, locality, is_verified, convivencia_quiz_completed')
+                  .limit(1000);
+                if (error) throw error;
+                const rows = (data as any[]).map((p) => {
+                  const tags: string[] = [];
+                  if (p.role === 'INQUILINO') tags.push('moon-inquilino');
+                  if (p.role === 'PROPIETARIO') tags.push('moon-propietario');
+                  if (p.role === 'ANFITRION') tags.push('moon-anfitrion');
+                  if (p.role === 'ADMIN') tags.push('moon-admin');
+                  if (p.is_verified) tags.push('verified');
+                  if (p.convivencia_quiz_completed) tags.push('quiz-completed');
+                  if (p.city) tags.push(`city:${p.city}`);
+                  if (p.locality) tags.push(`locality:${p.locality}`);
+                  return {
+                    id: p.id,
+                    name: p.name || '',
+                    email: p.email || '',
+                    role: p.role || '',
+                    city: p.city || '',
+                    locality: p.locality || '',
+                    tags: tags.join(' | '),
+                  };
+                });
+                const headers = ['id','name','email','role','city','locality','tags'];
+                const csv = [headers.join(','), ...rows.map(r => headers.map(h => JSON.stringify((r as any)[h] ?? '')).join(','))].join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'contacts_export.csv'; a.click(); URL.revokeObjectURL(url);
+              } catch (e) {
+                alert('Error exportando: ' + (e as any).message);
+              } finally { setExporting(false); }
+            }}
+            className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 px-3 py-2 rounded-md text-sm font-semibold text-white"
+          >{exporting ? 'Exportando…' : 'Exportar CSV'}</button>
+        </div>
+        <p className="text-white/70 text-sm">Exporta contactos con tags derivadas (rol, verificación, ciudad/localidad). Útil para importar a FluentCRM u otro CRM.</p>
+      </GlassCard>
+    </div>
+  );
+};
