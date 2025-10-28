@@ -473,7 +473,7 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({ user, allUsers, prope
         return { dominantTags, summary };
     }, [user.convivencia_persona]);
 
-    const nextSteps = useMemo(() => {
+    const baseNextSteps = useMemo(() => {
         const tasks: Array<{ id: string; title: string; description: string; actionLabel: string; onAction: () => void }> = [];
         if (!user.convivencia_quiz_completed && onOpenQuiz) {
             tasks.push({
@@ -503,17 +503,8 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({ user, allUsers, prope
                 onAction: () => onNotificationsOpened?.(),
             });
         }
-        if (potentialRoommates.length > 0 && currentIndex >= potentialRoommates.length) {
-            tasks.push({
-                id: 'refresh-discover',
-                title: 'Explora más perfiles',
-                description: 'Ajusta filtros o vuelve más tarde para ver nuevas coincidencias.',
-                actionLabel: 'Editar filtros',
-                onAction: () => setShowDiscoverFilters(true),
-            });
-        }
         return tasks;
-    }, [user.convivencia_quiz_completed, user.is_profile_complete, notifications, potentialRoommates, currentIndex, onGoToAccountSettings, onNotificationsOpened, onOpenQuiz]);
+    }, [user.convivencia_quiz_completed, user.is_profile_complete, notifications, onGoToAccountSettings, onNotificationsOpened, onOpenQuiz]);
 
     const localeMap: Record<string, string> = { es: 'es-ES', en: 'en-GB', ca: 'ca-ES' };
     const dateLocale = localeMap[language] || 'es-ES';
@@ -613,6 +604,21 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({ user, allUsers, prope
     useEffect(() => {
         setCurrentIndex(0);
     }, [potentialRoommates]);
+
+    // Compose next steps with discover context once potentialRoommates is available
+    const nextSteps = useMemo(() => {
+        const tasks = [...baseNextSteps];
+        if (potentialRoommates.length > 0 && currentIndex >= potentialRoommates.length) {
+            tasks.push({
+                id: 'refresh-discover',
+                title: 'Explora más perfiles',
+                description: 'Ajusta filtros o vuelve más tarde para ver nuevas coincidencias.',
+                actionLabel: 'Editar filtros',
+                onAction: () => setShowDiscoverFilters(true),
+            });
+        }
+        return tasks;
+    }, [baseNextSteps, potentialRoommates, currentIndex]);
 
 
     const usersById = useMemo(() => new Map(allUsers.map(u => [u.id, u])), [allUsers]);
