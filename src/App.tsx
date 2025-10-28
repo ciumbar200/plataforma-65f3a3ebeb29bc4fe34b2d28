@@ -74,6 +74,7 @@ const PAGE_PATHS: Partial<Record<Page, string>> = {
   ambassadors: '/ambassadors',
   refer: '/refer',
   plan: '/plan',
+  'admin-dashboard': '/admin',
 };
 
 type RegistrationData = { rentalGoal: RentalGoal; city: string; locality: string };
@@ -1450,6 +1451,13 @@ function App() {
         />;
       case 'admin-dashboard':
         if (!currentUser || currentUser.role !== UserRole.ADMIN) return <LoginPage onLogin={handleLogin} onRegister={handleRegister} initialMode="login" {...loginPageProps} />;
+        // Inicializar la pestaña según ?tab= en la URL (ej: /admin?tab=crm)
+        const initialAdminTab = (() => {
+          if (typeof window === 'undefined') return undefined;
+          const t = new URLSearchParams(window.location.search).get('tab');
+          const allowed = ['dashboard','users','properties','blog','growth','crm','plan','settings'] as const;
+          return (allowed.includes((t as any)) ? (t as any) : undefined);
+        })();
         return (
           <React.Suspense fallback={<div className="min-h-[50vh] flex items-center justify-center text-white">Cargando panel de administración…</div>}>
             <AdminDashboard 
@@ -1462,6 +1470,7 @@ function App() {
               onSaveBlogPost={handleSaveBlogPost}
               onDeleteBlogPost={handleDeleteBlogPost}
               onLogout={handleLogout}
+              initialTab={initialAdminTab}
             />
           </React.Suspense>
         );

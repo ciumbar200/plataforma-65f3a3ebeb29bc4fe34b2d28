@@ -39,6 +39,7 @@ interface AdminDashboardProps {
     onSaveBlogPost: (post: Omit<BlogPost, 'id'> & { id?: number }) => void;
     onDeleteBlogPost: (postId: number) => void;
     onLogout: () => void;
+    initialTab?: AdminTab;
 }
 
 const navItems: NavItem[] = [
@@ -61,9 +62,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     onSetUserBanStatus,
     onSaveBlogPost,
     onDeleteBlogPost,
-    onLogout
+    onLogout,
+    initialTab
 }) => {
-    const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
+    const [activeTab, setActiveTab] = useState<AdminTab>(initialTab ?? 'dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
@@ -499,7 +501,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     };
     
     return (
-        <div className="h-full w-full flex text-white bg-gray-900">
+        <div className="min-h-[100dvh] w-full flex text-white bg-gray-900">
             {isSidebarOpen && <div className="md:hidden fixed inset-0 bg-black/60 z-30" onClick={() => setIsSidebarOpen(false)}></div>}
             
             <nav className={`fixed inset-y-0 left-0 w-64 bg-black/30 backdrop-blur-xl border-r border-white/10 p-4 flex-shrink-0 flex flex-col z-40 transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
