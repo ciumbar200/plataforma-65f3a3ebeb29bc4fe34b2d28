@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { User, Property, UserRole, BlogPost } from '../types';
 import StatCard from './components/StatCard';
 import { UsersIcon, CheckCircleIcon, BuildingIcon, HeartIcon, ChartBarIcon, ClockIcon, FileTextIcon, SettingsIcon, EyeIcon, TrashIcon, BanIcon, PencilIcon, CheckIcon as CheckMarkIcon, XIcon, PlusIcon, AlertTriangleIcon, MoonIcon, LogoutIcon, MenuIcon } from '../components/icons';
+import { fluentCrmStatus, fetchFluentTags, fetchFluentLists, fetchFluentSegments, searchFluentContacts } from '../lib/fluentCrm';
 import GlassCard from '../components/GlassCard';
 import UserDetailsModal from './components/UserDetailsModal';
 import PropertyDetailsModal from './components/PropertyDetailsModal';
@@ -17,7 +18,7 @@ import actionPlanRaw from '../../docs/perfect-app-action-plan.md?raw';
 type ReferralStats = { invited: number; registered: number; verified: number; contracted: number };
 const defaultReferralStats: ReferralStats = { invited: 0, registered: 0, verified: 0, contracted: 0 };
 
-type AdminTab = 'dashboard' | 'users' | 'properties' | 'blog' | 'growth' | 'plan' | 'settings';
+type AdminTab = 'dashboard' | 'users' | 'properties' | 'blog' | 'growth' | 'crm' | 'plan' | 'settings';
 
 // FIX: Define a type for navigation items to ensure type safety for optional properties like 'count'.
 type NavItem = {
@@ -46,6 +47,7 @@ const navItems: NavItem[] = [
     { id: 'properties', label: 'Propiedades', icon: <BuildingIcon className="w-5 h-5" /> },
     { id: 'blog', label: 'Blog', icon: <FileTextIcon className="w-5 h-5" /> },
     { id: 'growth', label: 'Crecimiento', icon: <HeartIcon className="w-5 h-5" /> },
+    { id: 'crm', label: 'CRM', icon: <UsersIcon className="w-5 h-5" /> },
     { id: 'plan', label: 'Plan estratégico', icon: <FileTextIcon className="w-5 h-5" /> },
     { id: 'settings', label: 'Ajustes', icon: <SettingsIcon className="w-5 h-5" /> },
 ];
@@ -489,6 +491,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             case 'properties': return renderProperties();
             case 'blog': return renderBlog();
             case 'growth': return <GrowthView />;
+            case 'crm': return <CrmView />;
             case 'plan': return <PlanView />;
             case 'settings': return renderSettings();
             default: return null;
@@ -733,6 +736,129 @@ const EditUserModal: React.FC<{ isOpen: boolean; onClose: () => void; onSaved: (
           }} className="bg-indigo-500 px-3 py-2 rounded-md text-slate-900 font-semibold">Guardar</button>
         </div>
       </GlassCard>
+    </div>
+  );
+};
+
+const CrmView: React.FC = () => {
+  const [connected, setConnected] = useState(fluentCrmStatus.isRestConfigured);
+  const [tags, setTags] = useState<any[]>([]);
+  const [lists, setLists] = useState<any[]>([]);
+  const [segments, setSegments] = useState<any[]>([]);
+  const [q, setQ] = useState('');
+  const [contacts, setContacts] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setConnected(fluentCrmStatus.isRestConfigured);
+    if (!fluentCrmStatus.isRestConfigured) return;
+    const loadMeta = async () => {
+      const [t, l, s] = await Promise.all([fetchFluentTags(), fetchFluentLists(), fetchFluentSegments()]);
+      setTags(t || []); setLists(l || []); setSegments(s || []);
+    };
+    void loadMeta();
+  }, []);
+
+  const runSearch = async () => {
+    if (!fluentCrmStatus.isRestConfigured) return;
+    setLoading(true);
+    try {
+      const { data, total } = await searchFluentContacts(q.trim(), 1, 25);
+      setContacts(data || []); setTotal(total || 0);
+    } finally { setLoading(false); }
+  };
+
+  if (!connected) {
+    return (
+      <GlassCard>
+        <h3 className="text-lg font-bold mb-2">Conectar CRM (FluentCRM)</h3>
+        <p className="text-white/80 text-sm">Configura estas variables para activar lectura directa del CRM:</p>
+        <ul className="list-disc pl-5 text-white/70 text-sm mt-2">
+          <li>VITE_FLUENTCRM_BASE_URL (ej: https://crm.midominio.com)</li>
+          <li>VITE_FLUENTCRM_API_KEY</li>
+          <li>VITE_FLUENTCRM_API_SECRET</li>
+        </ul>
+        <p className="text-white/60 text-sm mt-2">Mientras tanto, puedes usar la exportación CSV en la pestaña “Crecimiento”.</p>
+      </GlassCard>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <GlassCard>
+        <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+          <div className="flex-1">
+            <label className="text-sm text-white/80">Buscar contactos (email/nombre)
+              <input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" placeholder="val@dominio.com o Valentina" value={q} onChange={e => setQ(e.target.value)} />
+            </label>
+          </div>
+          <button onClick={runSearch} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 px-3 py-2 rounded-md text-sm font-semibold text-white">{loading ? 'Buscando…' : 'Buscar'}</button>
+        </div>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full text-left text-white text-sm">
+            <thead className="sticky top-0 bg-black/30">
+              <tr>
+                <th className="p-2">Email</th>
+                <th className="p-2">Nombre</th>
+                <th className="p-2">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {contacts.map((c: any) => (
+                <tr key={c.id || c.email} className="border-b border-white/10">
+                  <td className="p-2">{c.email}</td>
+                  <td className="p-2">{c.first_name} {c.last_name}</td>
+                  <td className="p-2 capitalize">{c.status || '—'}</td>
+                </tr>
+              ))}
+              {!contacts.length && (
+                <tr><td className="p-3 text-white/70" colSpan={3}>Sin resultados aún.</td></tr>
+              )}
+            </tbody>
+          </table>
+          {!!total && <p className="text-xs text-white/50 mt-2">Total: {total}</p>}
+        </div>
+      </GlassCard>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <GlassCard>
+          <h4 className="text-lg font-semibold mb-2">Tags</h4>
+          <ul className="text-sm space-y-1 max-h-64 overflow-auto pr-2">
+            {tags.map((t: any) => (
+              <li key={t.id} className="flex justify-between border-b border-white/10 py-1">
+                <span>{t.title || t.slug || t.name}</span>
+                <span className="text-white/50">{t.count ?? ''}</span>
+              </li>
+            ))}
+            {!tags.length && <li className="text-white/60">—</li>}
+          </ul>
+        </GlassCard>
+        <GlassCard>
+          <h4 className="text-lg font-semibold mb-2">Listas</h4>
+          <ul className="text-sm space-y-1 max-h-64 overflow-auto pr-2">
+            {lists.map((l: any) => (
+              <li key={l.id} className="flex justify-between border-b border-white/10 py-1">
+                <span>{l.title || l.name}</span>
+                <span className="text-white/50">{l.subscribers_count ?? ''}</span>
+              </li>
+            ))}
+            {!lists.length && <li className="text-white/60">—</li>}
+          </ul>
+        </GlassCard>
+        <GlassCard>
+          <h4 className="text-lg font-semibold mb-2">Segmentos</h4>
+          <ul className="text-sm space-y-1 max-h-64 overflow-auto pr-2">
+            {segments.map((s: any) => (
+              <li key={s.id} className="flex justify-between border-b border-white/10 py-1">
+                <span>{s.title || s.name}</span>
+                <span className="text-white/50">{s.subscribers_count ?? ''}</span>
+              </li>
+            ))}
+            {!segments.length && <li className="text-white/60">—</li>}
+          </ul>
+        </GlassCard>
+      </div>
     </div>
   );
 };

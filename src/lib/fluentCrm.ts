@@ -9,8 +9,12 @@ const isRestConfigured = Boolean(API_BASE && API_KEY && API_SECRET);
 const isHashedConfigured = Boolean(HASHED_WEBHOOK_URL);
 const isConfigured = isRestConfigured || isHashedConfigured;
 
-const buildUrl = (path: string) => {
-    return `${API_BASE}${path}?api_key=${API_KEY}&api_secret=${API_SECRET}`;
+const buildUrl = (path: string, query: Record<string, string | number | undefined> = {}) => {
+    const hasQuery = path.includes('?');
+    const sep = hasQuery ? '&' : '?';
+    const url = `${API_BASE}${path}${sep}api_key=${API_KEY}&api_secret=${API_SECRET}`;
+    const extra = Object.entries(query).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`).join('&');
+    return extra ? `${url}&${extra}` : url;
 };
 
 type FluentContactPayload = {
@@ -261,3 +265,46 @@ export const notifyFluentCrmNewProperty = async (
         ],
     });
 };
+
+// Expose status so UIs can check configuration
+export const fluentCrmStatus = { isRestConfigured, isHashedConfigured, isConfigured, API_BASE };
+
+// Lightweight REST getters for admin UI
+export async function fetchFluentTags() {
+    if (!isRestConfigured) return [] as any[];
+    try {
+        const res = await fetch(buildUrl('/wp-json/fluent-crm/v2/tags'));
+        if (!res.ok) return [] as any[];
+        return await res.json();
+    } catch { return [] as any[]; }
+}
+
+export async function fetchFluentLists() {
+    if (!isRestConfigured) return [] as any[];
+    try {
+        const res = await fetch(buildUrl('/wp-json/fluent-crm/v2/lists'));
+        if (!res.ok) return [] as any[];
+        return await res.json();
+    } catch { return [] as any[]; }
+}
+
+export async function fetchFluentSegments() {
+    if (!isRestConfigured) return [] as any[];
+    try {
+        const res = await fetch(buildUrl('/wp-json/fluent-crm/v2/segments'));
+        if (!res.ok) return [] as any[];
+        return await res.json();
+    } catch { return [] as any[]; }
+}
+
+export async function searchFluentContacts(query: string, page = 1, perPage = 20) {
+    if (!isRestConfigured) return { data: [], total: 0 };
+    try {
+        const res = await fetch(buildUrl('/wp-json/fluent-crm/v2/contacts', { search: query, page, per_page: perPage }));
+        if (!res.ok) return { data: [], total: 0 };
+        const json = await res.json();
+        // Some installs return { data, total, pagination }, others return array
+        if (Array.isArray(json)) return { data: json, total: json.length };
+        return { data: json.data || [], total: json.total || (json.pagination?.total || 0) };
+    } catch { return { data: [], total: 0 }; }
+}
