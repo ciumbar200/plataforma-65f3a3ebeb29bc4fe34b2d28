@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { User, Property, UserRole, BlogPost } from '../types';
 import StatCard from './components/StatCard';
 import { UsersIcon, CheckCircleIcon, BuildingIcon, HeartIcon, ChartBarIcon, ClockIcon, FileTextIcon, SettingsIcon, EyeIcon, TrashIcon, BanIcon, PencilIcon, CheckIcon as CheckMarkIcon, XIcon, PlusIcon, AlertTriangleIcon, MoonIcon, LogoutIcon, MenuIcon } from '../components/icons';
-import { fluentCrmStatus, fetchFluentTags, fetchFluentLists, fetchFluentSegments, searchFluentContacts } from '../lib/fluentCrm';
+// Internal CRM (Supabase)
 import GlassCard from '../components/GlassCard';
 import UserDetailsModal from './components/UserDetailsModal';
 import PropertyDetailsModal from './components/PropertyDetailsModal';
@@ -741,124 +741,265 @@ const EditUserModal: React.FC<{ isOpen: boolean; onClose: () => void; onSaved: (
 };
 
 const CrmView: React.FC = () => {
-  const [connected, setConnected] = useState(fluentCrmStatus.isRestConfigured);
-  const [tags, setTags] = useState<any[]>([]);
-  const [lists, setLists] = useState<any[]>([]);
-  const [segments, setSegments] = useState<any[]>([]);
-  const [q, setQ] = useState('');
+  // Contacts
   const [contacts, setContacts] = useState<any[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [q, setQ] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState<{ email: string; name: string; phone?: string; city?: string; locality?: string }>({ email: '', name: '' });
+  // Tags
+  const [tags, setTags] = useState<any[]>([]);
+  const [selectedContact, setSelectedContact] = useState<string | null>(null);
+  const [newTag, setNewTag] = useState('');
+  // Templates
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [tplForm, setTplForm] = useState<{ name: string; sendgrid_template_id: string; from_email: string }>({ name: '', sendgrid_template_id: '', from_email: '' });
+  const [savingTpl, setSavingTpl] = useState(false);
+  // Sequences
+  const [sequences, setSequences] = useState<any[]>([]);
+  const [seqForm, setSeqForm] = useState<{ name: string }>({ name: '' });
+  const [savingSeq, setSavingSeq] = useState(false);
+  const [steps, setSteps] = useState<any[]>([]);
+  const [stepForm, setStepForm] = useState<{ sequence_id?: number; position: number; delay_seconds: number; template_id?: number }>({ position: 1, delay_seconds: 86400 });
+  const [enrollForm, setEnrollForm] = useState<{ contact_id?: string; sequence_id?: number; start_delay?: number }>({});
 
-  useEffect(() => {
-    setConnected(fluentCrmStatus.isRestConfigured);
-    if (!fluentCrmStatus.isRestConfigured) return;
-    const loadMeta = async () => {
-      const [t, l, s] = await Promise.all([fetchFluentTags(), fetchFluentLists(), fetchFluentSegments()]);
-      setTags(t || []); setLists(l || []); setSegments(s || []);
-    };
-    void loadMeta();
-  }, []);
-
-  const runSearch = async () => {
-    if (!fluentCrmStatus.isRestConfigured) return;
-    setLoading(true);
-    try {
-      const { data, total } = await searchFluentContacts(q.trim(), 1, 25);
-      setContacts(data || []); setTotal(total || 0);
-    } finally { setLoading(false); }
+  const loadContacts = async () => {
+    const query = supabase.from('crm_contacts').select('*').order('created_at', { ascending: false }).limit(50);
+    const { data, error } = q.trim()
+      ? await query.ilike('email', `%${q.trim()}%`)
+      : await query;
+    if (!error) setContacts(data as any[]);
+  };
+  const loadTags = async () => {
+    const { data } = await supabase.from('crm_tags').select('*').order('name');
+    setTags((data as any[]) || []);
+  };
+  const loadTemplates = async () => {
+    const { data } = await supabase.from('email_templates').select('*').order('created_at', { ascending: false }).limit(100);
+    setTemplates((data as any[]) || []);
+  };
+  const loadSequences = async () => {
+    const { data } = await supabase.from('crm_sequences').select('*').order('created_at', { ascending: false }).limit(100);
+    setSequences((data as any[]) || []);
+  };
+  const loadSteps = async (sequence_id: number) => {
+    const { data } = await supabase.from('crm_sequence_steps').select('*').eq('sequence_id', sequence_id).order('position');
+    setSteps((data as any[]) || []);
   };
 
-  if (!connected) {
-    return (
-      <GlassCard>
-        <h3 className="text-lg font-bold mb-2">Conectar CRM (FluentCRM)</h3>
-        <p className="text-white/80 text-sm">Configura estas variables para activar lectura directa del CRM:</p>
-        <ul className="list-disc pl-5 text-white/70 text-sm mt-2">
-          <li>VITE_FLUENTCRM_BASE_URL (ej: https://crm.midominio.com)</li>
-          <li>VITE_FLUENTCRM_API_KEY</li>
-          <li>VITE_FLUENTCRM_API_SECRET</li>
-        </ul>
-        <p className="text-white/60 text-sm mt-2">Mientras tanto, puedes usar la exportación CSV en la pestaña “Crecimiento”.</p>
-      </GlassCard>
-    );
-  }
+  useEffect(() => { void loadContacts(); void loadTags(); void loadTemplates(); void loadSequences(); }, []);
 
   return (
     <div className="space-y-6">
+      {/* Contacts */}
       <GlassCard>
-        <div className="flex flex-col sm:flex-row sm:items-end gap-3">
-          <div className="flex-1">
-            <label className="text-sm text-white/80">Buscar contactos (email/nombre)
-              <input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" placeholder="val@dominio.com o Valentina" value={q} onChange={e => setQ(e.target.value)} />
-            </label>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+            <div className="flex-1">
+              <label className="text-sm text-white/80">Buscar contactos
+                <input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" placeholder="email" value={q} onChange={e => setQ(e.target.value)} />
+              </label>
+            </div>
+            <button onClick={loadContacts} className="bg-white/10 hover:bg-white/20 px-3 py-2 rounded-md text-sm">Buscar</button>
           </div>
-          <button onClick={runSearch} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 px-3 py-2 rounded-md text-sm font-semibold text-white">{loading ? 'Buscando…' : 'Buscar'}</button>
-        </div>
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-left text-white text-sm">
-            <thead className="sticky top-0 bg-black/30">
-              <tr>
-                <th className="p-2">Email</th>
-                <th className="p-2">Nombre</th>
-                <th className="p-2">Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {contacts.map((c: any) => (
-                <tr key={c.id || c.email} className="border-b border-white/10">
-                  <td className="p-2">{c.email}</td>
-                  <td className="p-2">{c.first_name} {c.last_name}</td>
-                  <td className="p-2 capitalize">{c.status || '—'}</td>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <label className="text-sm text-white/80">Email<input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.email} onChange={e => setForm(s => ({ ...s, email: e.target.value }))} /></label>
+            <label className="text-sm text-white/80">Nombre<input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.name} onChange={e => setForm(s => ({ ...s, name: e.target.value }))} /></label>
+            <label className="text-sm text-white/80">Teléfono<input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.phone || ''} onChange={e => setForm(s => ({ ...s, phone: e.target.value }))} /></label>
+            <label className="text-sm text-white/80">Ciudad<input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.city || ''} onChange={e => setForm(s => ({ ...s, city: e.target.value }))} /></label>
+            <label className="text-sm text-white/80">Localidad<input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={form.locality || ''} onChange={e => setForm(s => ({ ...s, locality: e.target.value }))} /></label>
+            <div className="flex items-end">
+              <button disabled={creating || !form.email} onClick={async () => {
+                setCreating(true);
+                try {
+                  const { error } = await supabase.rpc('crm_upsert_contact', { p_email: form.email, p_name: form.name || null, p_phone: form.phone || null, p_city: form.city || null, p_locality: form.locality || null });
+                  if (error) throw error;
+                  setForm({ email: '', name: '' });
+                  await loadContacts();
+                } catch (e) {
+                  alert('Error creando contacto: ' + (e as any).message);
+                } finally { setCreating(false); }
+              }} className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 px-3 py-2 rounded-md text-sm font-semibold text-white">{creating ? 'Guardando…' : 'Crear/Actualizar'}</button>
+            </div>
+          </div>
+
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-white text-sm">
+              <thead className="sticky top-0 bg-black/30">
+                <tr>
+                  <th className="p-2">Email</th>
+                  <th className="p-2">Nombre</th>
+                  <th className="p-2">Ciudad</th>
+                  <th className="p-2">Tags</th>
+                  <th className="p-2 text-right">Acciones</th>
                 </tr>
-              ))}
-              {!contacts.length && (
-                <tr><td className="p-3 text-white/70" colSpan={3}>Sin resultados aún.</td></tr>
-              )}
-            </tbody>
-          </table>
-          {!!total && <p className="text-xs text-white/50 mt-2">Total: {total}</p>}
+              </thead>
+              <tbody>
+                {contacts.map((c: any) => (
+                  <tr key={c.id} className="border-b border-white/10">
+                    <td className="p-2">{c.email}</td>
+                    <td className="p-2">{c.name || '—'}</td>
+                    <td className="p-2">{c.city || '—'}</td>
+                    <td className="p-2">
+                      {/* This is a lightweight view; full tag names would require a join */}
+                      <em className="text-white/50">via relación</em>
+                    </td>
+                    <td className="p-2 text-right space-x-2">
+                      <button className="bg-white/10 hover:bg-white/20 px-2 py-1 rounded-md text-xs" onClick={() => setSelectedContact(c.id)}>Añadir tag</button>
+                      <button className="bg-indigo-600 hover:bg-indigo-700 px-2 py-1 rounded-md text-xs font-semibold text-white" onClick={() => setEnrollForm(s => ({ ...s, contact_id: c.id }))}>Inscribir en secuencia</button>
+                    </td>
+                  </tr>
+                ))}
+                {!contacts.length && <tr><td className="p-3 text-white/70" colSpan={5}>Sin contactos.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+
+          {selectedContact && (
+            <div className="mt-3 flex items-end gap-2">
+              <label className="text-sm text-white/80 flex-1">Nueva tag
+                <input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={newTag} onChange={e => setNewTag(e.target.value)} />
+              </label>
+              <button onClick={async () => {
+                try {
+                  const { error } = await supabase.rpc('crm_add_tag', { p_contact: selectedContact, p_tag: newTag });
+                  if (error) throw error;
+                  setNewTag(''); setSelectedContact(null);
+                } catch (e) { alert('Error tag: ' + (e as any).message); }
+              }} className="bg-white/10 hover:bg-white/20 px-3 py-2 rounded-md text-sm">Añadir</button>
+              <button onClick={() => setSelectedContact(null)} className="bg-white/10 hover:bg-white/20 px-3 py-2 rounded-md text-sm">Cerrar</button>
+            </div>
+          )}
         </div>
       </GlassCard>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <GlassCard>
-          <h4 className="text-lg font-semibold mb-2">Tags</h4>
-          <ul className="text-sm space-y-1 max-h-64 overflow-auto pr-2">
-            {tags.map((t: any) => (
-              <li key={t.id} className="flex justify-between border-b border-white/10 py-1">
-                <span>{t.title || t.slug || t.name}</span>
-                <span className="text-white/50">{t.count ?? ''}</span>
-              </li>
+      {/* Templates */}
+      <GlassCard>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-lg font-semibold">Plantillas (SendGrid)</h4>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <label className="text-sm text-white/80">Nombre<input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={tplForm.name} onChange={e => setTplForm(s => ({ ...s, name: e.target.value }))} /></label>
+          <label className="text-sm text-white/80">Template ID<input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={tplForm.sendgrid_template_id} onChange={e => setTplForm(s => ({ ...s, sendgrid_template_id: e.target.value }))} /></label>
+          <label className="text-sm text-white/80">From Email<input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={tplForm.from_email} onChange={e => setTplForm(s => ({ ...s, from_email: e.target.value }))} /></label>
+          <div className="flex items-end">
+            <button disabled={savingTpl || !tplForm.name || !tplForm.sendgrid_template_id} onClick={async () => {
+              setSavingTpl(true);
+              try {
+                const { error } = await supabase.from('email_templates').insert({ name: tplForm.name, provider: 'sendgrid', sendgrid_template_id: tplForm.sendgrid_template_id, from_email: tplForm.from_email || null });
+                if (error) throw error;
+                setTplForm({ name: '', sendgrid_template_id: '', from_email: '' });
+                await loadTemplates();
+              } catch (e) { alert('Error guardando plantilla: ' + (e as any).message); } finally { setSavingTpl(false); }
+            }} className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 px-3 py-2 rounded-md text-sm font-semibold text-white">{savingTpl ? 'Guardando…' : 'Guardar'}</button>
+          </div>
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          {templates.map((t) => (
+            <div key={t.id} className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm">
+              <p className="font-semibold">{t.name}</p>
+              <p className="text-white/60">{t.sendgrid_template_id || '—'}</p>
+            </div>
+          ))}
+          {!templates.length && <p className="text-white/70">Sin plantillas.</p>}
+        </div>
+      </GlassCard>
+
+      {/* Sequences */}
+      <GlassCard>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-lg font-semibold">Secuencias</h4>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <label className="text-sm text-white/80">Nombre de secuencia<input className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={seqForm.name} onChange={e => setSeqForm({ name: e.target.value })} /></label>
+          <div className="flex items-end">
+            <button disabled={savingSeq || !seqForm.name} onClick={async () => {
+              setSavingSeq(true);
+              try {
+                const { data, error } = await supabase.from('crm_sequences').insert({ name: seqForm.name, is_active: true }).select('id').single();
+                if (error) throw error;
+                setSeqForm({ name: '' });
+                await loadSequences();
+                await loadSteps(data!.id);
+                setStepForm({ sequence_id: data!.id, position: 1, delay_seconds: 86400 });
+              } catch (e) { alert('Error creando secuencia: ' + (e as any).message); } finally { setSavingSeq(false); }
+            }} className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 px-3 py-2 rounded-md text-sm font-semibold text-white">Crear</button>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <div className="space-y-2">
+            {sequences.map((s) => (
+              <button key={s.id} onClick={() => { void loadSteps(s.id); setStepForm(sf => ({ ...sf, sequence_id: s.id })); }} className="w-full text-left rounded-lg border border-white/10 bg-white/5 p-3 hover:bg-white/10">
+                <p className="font-semibold">{s.name}</p>
+                <p className="text-xs text-white/60">Activa: {s.is_active ? 'Sí' : 'No'}</p>
+              </button>
             ))}
-            {!tags.length && <li className="text-white/60">—</li>}
-          </ul>
-        </GlassCard>
-        <GlassCard>
-          <h4 className="text-lg font-semibold mb-2">Listas</h4>
-          <ul className="text-sm space-y-1 max-h-64 overflow-auto pr-2">
-            {lists.map((l: any) => (
-              <li key={l.id} className="flex justify-between border-b border-white/10 py-1">
-                <span>{l.title || l.name}</span>
-                <span className="text-white/50">{l.subscribers_count ?? ''}</span>
-              </li>
-            ))}
-            {!lists.length && <li className="text-white/60">—</li>}
-          </ul>
-        </GlassCard>
-        <GlassCard>
-          <h4 className="text-lg font-semibold mb-2">Segmentos</h4>
-          <ul className="text-sm space-y-1 max-h-64 overflow-auto pr-2">
-            {segments.map((s: any) => (
-              <li key={s.id} className="flex justify-between border-b border-white/10 py-1">
-                <span>{s.title || s.name}</span>
-                <span className="text-white/50">{s.subscribers_count ?? ''}</span>
-              </li>
-            ))}
-            {!segments.length && <li className="text-white/60">—</li>}
-          </ul>
-        </GlassCard>
-      </div>
+            {!sequences.length && <p className="text-white/70">Sin secuencias.</p>}
+          </div>
+          <div className="space-y-3">
+            <h5 className="font-semibold">Pasos de la secuencia</h5>
+            <div className="space-y-2">
+              {steps.map((st) => (
+                <div key={st.id} className="rounded-lg border border-white/10 bg-white/5 p-3 text-sm">
+                  <p className="font-semibold">Paso {st.position} • +{st.delay_seconds}s</p>
+                  <p className="text-white/60">Plantilla ID: {st.template_id || '—'}</p>
+                </div>
+              ))}
+              {!steps.length && <p className="text-white/70">Selecciona una secuencia.</p>}
+            </div>
+            <div className="grid gap-2 sm:grid-cols-4">
+              <label className="text-sm text-white/80">Posición<input type="number" min={1} className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={stepForm.position} onChange={e => setStepForm(s => ({ ...s, position: Number(e.target.value || 1) }))} /></label>
+              <label className="text-sm text-white/80">Delay (s)<input type="number" className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={stepForm.delay_seconds} onChange={e => setStepForm(s => ({ ...s, delay_seconds: Number(e.target.value || 0) }))} /></label>
+              <label className="text-sm text-white/80">Template
+                <select className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={stepForm.template_id || ''} onChange={e => setStepForm(s => ({ ...s, template_id: e.target.value ? Number(e.target.value) : undefined }))}>
+                  <option value="">—</option>
+                  {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+              </label>
+              <div className="flex items-end">
+                <button disabled={!stepForm.sequence_id || !stepForm.position || !stepForm.template_id} onClick={async () => {
+                  try {
+                    const { error } = await supabase.from('crm_sequence_steps').insert({ sequence_id: stepForm.sequence_id, position: stepForm.position, delay_seconds: stepForm.delay_seconds, template_id: stepForm.template_id });
+                    if (error) throw error;
+                    await loadSteps(stepForm.sequence_id!);
+                  } catch (e) { alert('Error guardando paso: ' + (e as any).message); }
+                }} className="bg-white/10 hover:bg-white/20 px-3 py-2 rounded-md text-sm">Añadir paso</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </GlassCard>
+
+      {/* Enrollments */}
+      <GlassCard>
+        <h4 className="text-lg font-semibold mb-2">Inscribir contacto en secuencia</h4>
+        <div className="grid gap-2 sm:grid-cols-4">
+          <label className="text-sm text-white/80">Contacto
+            <select className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={enrollForm.contact_id || ''} onChange={e => setEnrollForm(s => ({ ...s, contact_id: e.target.value || undefined }))}>
+              <option value="">—</option>
+              {contacts.map(c => <option key={c.id} value={c.id}>{c.email}</option>)}
+            </select>
+          </label>
+          <label className="text-sm text-white/80">Secuencia
+            <select className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={enrollForm.sequence_id || ''} onChange={e => setEnrollForm(s => ({ ...s, sequence_id: e.target.value ? Number(e.target.value) : undefined }))}>
+              <option value="">—</option>
+              {sequences.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </label>
+          <label className="text-sm text-white/80">Comienza en (s)
+            <input type="number" className="mt-1 w-full rounded-md bg-white/10 border-white/20 px-3 py-2" value={enrollForm.start_delay || 0} onChange={e => setEnrollForm(s => ({ ...s, start_delay: Number(e.target.value || 0) }))} />
+          </label>
+          <div className="flex items-end">
+            <button onClick={async () => {
+              try {
+                if (!enrollForm.contact_id || !enrollForm.sequence_id) return;
+                const { error } = await supabase.rpc('crm_enroll_contact', { p_contact: enrollForm.contact_id, p_sequence: enrollForm.sequence_id, p_start_delay_seconds: enrollForm.start_delay || 0 });
+                if (error) throw error;
+                alert('Inscrito');
+              } catch (e) { alert('Error inscribiendo: ' + (e as any).message); }
+            }} className="bg-indigo-600 hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-semibold text-white">Inscribir</button>
+          </div>
+        </div>
+      </GlassCard>
     </div>
   );
 };

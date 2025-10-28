@@ -67,6 +67,94 @@ serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify({ processed: results.length, results }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-});
+  // Process CRM sequence enrollments that are due
+  const seqResults: Array<{ id: number; status: string; error?: string }> = [];
+  try {
+    const nowIso = new Date().toISOString();
+    const { data: enrollments, error: enrollError } = await supabase
+      .from('crm_enrollments')
+      .select('id, contact_id, sequence_id, current_step')
+      .eq('status', 'enrolled')
+      .lte('next_run_at', nowIso)
+      .order('next_run_at', { ascending: true })
+      .limit(20);
 
+    if (enrollError) throw enrollError;
+
+    for (const e of (enrollments || []) as Array<{ id: number; contact_id: string; sequence_id: number; current_step: number }>) {
+      const stepPos = (e.current_step || 0) + 1;
+      try {
+        // Step to execute
+        const { data: step, error: stepErr } = await supabase
+          .from('crm_sequence_steps')
+          .select('id, delay_seconds, template_id')
+          .eq('sequence_id', e.sequence_id)
+          .eq('position', stepPos)
+          .maybeSingle();
+        if (stepErr) throw stepErr;
+        if (!step) {
+          // No more steps -> complete
+          await supabase.from('crm_enrollments').update({ status: 'completed', next_run_at: null }).eq('id', e.id);
+          seqResults.push({ id: e.id, status: 'completed' });
+          continue;
+        }
+
+        // Load template
+        const { data: tpl, error: tplErr } = await supabase
+          .from('email_templates')
+          .select('provider, sendgrid_template_id')
+          .eq('id', step.template_id)
+          .maybeSingle();
+        if (tplErr) throw tplErr;
+        if (!tpl || tpl.provider !== 'sendgrid' || !tpl.sendgrid_template_id) {
+          throw new Error('Invalid or unsupported email template for sequence step');
+        }
+
+        // Load contact
+        const { data: contact, error: cErr } = await supabase
+          .from('crm_contacts')
+          .select('email, name')
+          .eq('id', e.contact_id)
+          .single();
+        if (cErr) throw cErr;
+        if (!contact?.email) throw new Error('Contact has no email');
+
+        await sendViaSendGrid(sendgridApiKey, fromEmail, contact.email, tpl.sendgrid_template_id as string, { name: contact.name });
+
+        // Determine next step scheduling
+        const { data: nextStep } = await supabase
+          .from('crm_sequence_steps')
+          .select('delay_seconds')
+          .eq('sequence_id', e.sequence_id)
+          .eq('position', stepPos + 1)
+          .maybeSingle();
+
+        if (nextStep) {
+          const nextRun = new Date(Date.now() + (Number(nextStep.delay_seconds) || 0) * 1000).toISOString();
+          await supabase
+            .from('crm_enrollments')
+            .update({ current_step: stepPos, next_run_at: nextRun })
+            .eq('id', e.id);
+          seqResults.push({ id: e.id, status: 'sent' });
+        } else {
+          await supabase
+            .from('crm_enrollments')
+            .update({ current_step: stepPos, status: 'completed', next_run_at: null })
+            .eq('id', e.id);
+          seqResults.push({ id: e.id, status: 'completed' });
+        }
+      } catch (err) {
+        await supabase
+          .from('crm_enrollments')
+          .update({ status: 'error', last_error: (err as Error).message })
+          .eq('id', e.id);
+        seqResults.push({ id: e.id, status: 'error', error: (err as Error).message });
+      }
+    }
+  } catch (outer) {
+    // include as meta error in response but don't fail entire run
+    seqResults.push({ id: -1 as unknown as number, status: 'error', error: (outer as Error).message });
+  }
+
+  return new Response(JSON.stringify({ processed: results.length, results, sequences: { processed: seqResults.length, results: seqResults } }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+});
